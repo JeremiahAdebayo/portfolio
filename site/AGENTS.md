@@ -1,3 +1,5 @@
+See ../AGENTS.md - repo-wide rules apply, plus the implementation plan at ../docs/superpowers/plans/2026-09-14-portfolio-revised-plan.md.
+
 <!-- BEGIN:nextjs-agent-rules -->
 
 # This is NOT the Next.js you know
