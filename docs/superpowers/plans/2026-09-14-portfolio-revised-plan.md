@@ -128,6 +128,9 @@ Written when Phases 3.3 → 7.4 were added. Read this before executing Phase 3; 
 | A8 | **Accessibility is now a phase of work (6.1), not an assumption.** Skip link, dialog semantics, live regions, focus return, reduced motion, and a non-3D reading of every room | A search of all 3,247 lines of v1.0 found **zero** occurrences of `aria-*`, `role=`, focus management, `prefers-reduced-motion`, or `sr-only` — while spec §24 makes an accessible alternative a hard requirement and §0 tells the executor never to simplify away "accessibility basics". This was the largest gap in the plan. | spec §24, §8, §23 |
 | A9 | Room data gained a validator (3.3, AD-17) before two more hand-drawn maps were added | Six maps of ASCII art with door symmetry and walkability constraints, previously verified only by someone walking around hoping. | — (plan defect) |
 | A10 | Analytics and error monitoring stay **off** until an explicit amendment (Appendix D.6/D.7) | §1 pins "no other runtime dependencies"; a single line of `@vercel/speed-insights` would silently violate it. | — (plan rule) |
+| A11 | Task 1.3's wall-slide fixture corrected (measured 2026-09-14, Phase 1 run) | The fixture asserted `moveWithCollision(map, {1.4, 2}, {-0.5, +0.5})` lands at `(1.4, 2.5)`. Against the plan's own model it lands at `(0.9, 2)`: `0.9 - 0.3 = 0.6` rounds to tile 1 (floor), so the x axis was never blocked, and `2 + 0.5 + 0.3 = 2.8` rounds to row 3 (wall), so z could not reach 2.5. The implementation is right and matches §"a tile's center is at its integer coordinates; the player radius is 0.3"; the fixture contradicted it. Verified by running the plan's fixture verbatim: `AssertionError: expected 0.8999999999999999 to be close to 1.4`. Fixture now starts at the standable edge `x = 0.8` so the x axis genuinely blocks. |
+| A12 | `@types/node` must be `^22` (or `>=24`), not the scaffold's `^20` | `vitest@5` declares `peerOptional @types/node@"^22.0.0 \|\| >=24.0.0"`; `npm install -D vitest` on a fresh create-next-app scaffold fails with `ERESOLVE` (measured 2026-09-14). Fixed by upgrading the existing devDependency — no new package, no `--legacy-peer-deps` (which would disable the very peer checking §1 relies on). |
+| A13 | React downgrade (Task 0.1 Step 2) is a **no-op** on Next 16.3.5's scaffold | It installs `react@19.2.8`, already inside fiber 9.7.0's `>=19 <19.3` range. Step 2 becomes "verify the version", not "downgrade". |
 
 New decisions AD-15 → AD-18 are in §2 above. Everything else in §0–§4 stands as written.
 
@@ -2079,9 +2082,11 @@ describe("collision", () => {
 
   it("slides along a wall when only one axis is blocked", () => {
     const map = makeGridMap(ROWS);
-    const next = moveWithCollision(map, { x: 1.4, z: 2 }, { x: -0.5, z: 0.5 });
-    expect(next.x).toBeCloseTo(1.4);
-    expect(next.z).toBeCloseTo(2.5);
+    // x=0.8 is the standable edge (radius 0.3 + tile-centred rounding), so the -x
+    // half of this delta is blocked and +z still moves: that is the wall-slide.
+    const next = moveWithCollision(map, { x: 0.8, z: 1 }, { x: -0.5, z: 0.5 });
+    expect(next.x).toBeCloseTo(0.8);
+    expect(next.z).toBeCloseTo(1.5);
   });
 
   it("stops the player from squeezing into a wall corner", () => {
