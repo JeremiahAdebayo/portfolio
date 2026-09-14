@@ -27,7 +27,7 @@ Plan Phase 1 imports things Phase 1 does not own: the `site/` project, the test 
 Scaffold `site/`, pin React to `~19.2.0` (fiber 9.7.0 peers `react >=19 <19.3` — non-negotiable), install the §1 list, `vitest.config.ts`, package scripts, root `.gitignore`, root `AGENTS.md`, `site/AGENTS.md`, `.env.example`.
 Pre-flight already done this session: Node `v24.19.0` (≥ 22.12 ✓), npm `11.17.0` (≥ 10 ✓), git `2.49.0` ✓.
 
-- [ ] Verify: `npx tsc --noEmit` clean, `npm run build` green, `npm run test` runs (0 tests is fine at this point), `git log` shows the baseline + Task 0.1 commits.
+- [x] Verify: `npx tsc --noEmit` clean, `npm run build` green, `npm run test` runs (0 tests is fine at this point), `git log` shows the baseline + Task 0.1 commits.
 
 ### Task P0-lite.b — master plan Task 0.3, **steps 1–3 only**
 
@@ -39,9 +39,9 @@ Pre-flight already done this session: Node `v24.19.0` (≥ 22.12 ✓), npm `11.1
 
 `portfolio/` is not a repo and is untracked by its parent (`?? portfolio/`, 0 tracked files), so `git init` here cannot touch anything else. Worktree creation on a repo with no commits is meaningless, so isolation is by branch instead of worktree, with AJ's consent assumed from "implement v1":
 
-- [ ] `git init` in `portfolio/`, commit the spec + plan docs as the baseline (message `docs: add portfolio spec and v1.1 implementation plan`).
-- [ ] `git switch -c phase/1-world-prototype`; all Phase 1 commits land there; `main` stays at the baseline so the whole phase is one `git switch main` away from being abandoned.
-- [ ] Never commit `node_modules`/`.next` (root `.gitignore` from Task 0.1).
+- [x] `git init` in `portfolio/`, commit the spec + plan docs as the baseline (done as `docs: portfolio spec and implementation plans (v1.1)`).
+- [x] `git switch -c phase/1-world-prototype`; all Phase 1 commits land there; `main` stays at the baseline so the whole phase is one `git switch main` away from being abandoned.
+- [x] Never commit `node_modules`/`.next` (root `.gitignore` from Task 0.1). Verified: `git ls-files | Select-String node_modules` is empty.
 
 ## Execution order and gates
 
@@ -77,11 +77,20 @@ The five `UNDER CONSTRUCTION` prompts in the hub are **the whole point** of Phas
 
 ## Completion = master plan Phase 1 exit gate + report
 
-- [ ] `/world` renders the hub at 60 fps with no console errors
-- [ ] WASD + arrows move; walls, pillars and the terminal block; wall-slide works
-- [ ] `[E]` prompts appear at the terminal and all four door frames, and vanish when you walk away
-- [ ] ESC opens/closes the pause menu; movement stops; its links navigate
-- [ ] Mobile emulation or WebGL-disabled shows the fallback, never a broken canvas
-- [ ] `npm run build` and `npm run test` green; every step box ticked in the master plan; one commit per green step
+- [ ] `/world` renders the hub with no console errors **except** the two Phase-0 prefetch 404s (A15) — but **60 fps is unproven**: only software GL was available here, where frame rate tracks pixel count (52 fps @ 480×270, 9 fps @ 1280×720). Needs a real integrated GPU before this box can be ticked.
+- [x] WASD + arrows move; walls, pillars and the terminal block; wall-slide works
+- [x] `[E]` prompts appear at the terminal and all four door frames, and vanish when you walk away
+- [x] ESC opens/closes the pause menu; movement stops; its links navigate — links resolve to 404 pages until Phase 0 lands (A15)
+- [x] Mobile emulation or WebGL-disabled shows the fallback, never a broken canvas
+- [x] `npm run build` and `npm run test` green; every step box ticked in the master plan. **Deviation:** Tasks 1.4–1.8 landed as one commit (`feat: hub world prototype (plan Tasks 1.4-1.8)`) because `Scene.tsx`/`WorldCanvas.tsx` wiring is shared across them; splitting it would have meant staging partial file contents.
+
+## 8. Results (2026-09-14)
+
+Phase 1 is **functionally complete**: the hub renders, walks, blocks, prompts and pauses, with 10 unit tests and a green build. Two things are explicitly **not** claimed:
+
+1. **60 fps on integrated graphics** — unmeasurable in this environment (software rasteriser). Measure it on AJ's laptop with `window.__gl`? Not yet: the renderer-stats hook is Task 6.3. Interim probe: devtools → Performance → 4× CPU throttle, watch the FPS meter in the Rendering panel.
+2. **The `ABOUT` sign on the hub's south wall reads mirrored from the spawn camera**, because the follow camera sits further south than the wall it is looking past. Correct when approached from inside. If it bothers AJ in the finished build, the fix is one prop: move the sign to the wall's outer face (`face: "s"`) or shorten the camera's z offset. Not changed here — it is a look/feel judgement, and the plan says those are human.
+
+Throwaway probes used for evidence live in `site/verify-*.mjs` (gitignored): `verify-phase1.mjs` (boot, HUD, WebGL, prompts, pause, fps, fallback), `verify-probe2.mjs` (404 + canvas/dpr + long tasks), `verify-fps.mjs` (fps vs resolution), `verify-gate2.mjs` (reload-per-scenario gate). Screenshots: `site/shot-*.png`, `site/gate-*.png`. Re-run with `node verify-gate2.mjs` while `npx next start -p 3111` is up.
 
 **Then report:** commits + hashes, tests seen failing before passing, the exit-gate table with what was actually observed, the Phase 0 slice still outstanding, and any deviation from §2 (with a §2a amendment row if a decision changed).

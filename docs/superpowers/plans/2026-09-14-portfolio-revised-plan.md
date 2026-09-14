@@ -131,6 +131,9 @@ Written when Phases 3.3 → 7.4 were added. Read this before executing Phase 3; 
 | A11 | Task 1.3's wall-slide fixture corrected (measured 2026-09-14, Phase 1 run) | The fixture asserted `moveWithCollision(map, {1.4, 2}, {-0.5, +0.5})` lands at `(1.4, 2.5)`. Against the plan's own model it lands at `(0.9, 2)`: `0.9 - 0.3 = 0.6` rounds to tile 1 (floor), so the x axis was never blocked, and `2 + 0.5 + 0.3 = 2.8` rounds to row 3 (wall), so z could not reach 2.5. The implementation is right and matches §"a tile's center is at its integer coordinates; the player radius is 0.3"; the fixture contradicted it. Verified by running the plan's fixture verbatim: `AssertionError: expected 0.8999999999999999 to be close to 1.4`. Fixture now starts at the standable edge `x = 0.8` so the x axis genuinely blocks. |
 | A12 | `@types/node` must be `^22` (or `>=24`), not the scaffold's `^20` | `vitest@5` declares `peerOptional @types/node@"^22.0.0 \|\| >=24.0.0"`; `npm install -D vitest` on a fresh create-next-app scaffold fails with `ERESOLVE` (measured 2026-09-14). Fixed by upgrading the existing devDependency — no new package, no `--legacy-peer-deps` (which would disable the very peer checking §1 relies on). |
 | A13 | React downgrade (Task 0.1 Step 2) is a **no-op** on Next 16.3.5's scaffold | It installs `react@19.2.8`, already inside fiber 9.7.0's `>=19 <19.3` range. Step 2 becomes "verify the version", not "downgrade". |
+| A14 | `npm run test` exits 1 until the first test file exists | Vitest 5 fails on "no test files found". That is the correct behaviour and Task 0.2's test lands first, so nothing to fix — but an executor hitting red at the end of Task 0.1 should not add `passWithNoTests` to hide it. |
+| A15 | `/world` logs two `404` console errors while Phase 0's pages are unbuilt | Measured in Phase 1: Next prefetches the `PauseMenu` links (`/projects`, `/contact`) that Tasks 0.4–0.6 create. Do **not** add `prefetch={false}` to hide it; build Phase 0 and the noise disappears on its own. |
+| A16 | Phase 1 was executed against a **Phase 0-lite** slice (Task 0.1 + Task 0.3 Step 1 + the body-class half of Step 2) | The hub renderer, HUD and world page consume only the design tokens, the scaffolded fonts, the `@/*` alias and the test runner. The content layer, `(site)` group, Nav/Footer, landing and project pages are still owed by Phase 0 and are *not* needed to walk the hub. Task 0.3 stays unticked below so the next executor completes it for real. |
 
 New decisions AD-15 → AD-18 are in §2 above. Everything else in §0–§4 stands as written.
 
@@ -737,6 +740,8 @@ git commit -m "feat: typed content layer with validation"
 ```
 
 ### Task 0.3: Design tokens, root layout, site chrome
+
+> **Status 2026-09-14: partially executed, deliberately.** Step 1 is done exactly as written (tokens are live and the world/HUD already consume them), and `layout.tsx` gained the `min-h-screen bg-facility-bg font-sans text-facility-text antialiased` body classes only. Steps 2's metadata/`site.owner` import, 3, 4, 5 and 6 are **still owed** — they need the content layer (Task 0.2), which Phase 1 does not require. Do not treat this task as done because Phase 1 shipped.
 
 **Files:**
 - Modify: `site/src/app/globals.css`, `site/src/app/layout.tsx`
@@ -1624,11 +1629,12 @@ git push -u origin main
 **Exit gate:**
 
 - [ ] `/world` renders the hub room at 60 fps with no console errors
-- [ ] WASD + arrows move the character; walls, pillars, and the terminal block movement; sliding along walls works
-- [ ] `[E]` prompts appear near the terminal and door frames, and disappear when you walk away
-- [ ] ESC opens/closes the pause menu; its links work
-- [ ] Mobile emulation (or WebGL disabled) shows the fallback panel, never a broken canvas
-- [ ] `npm run build` and `npm run test` green
+- [x] WASD + arrows move the character; walls, pillars, and the terminal block movement; sliding along walls works
+- [x] `[E]` prompts appear near the terminal and door frames, and disappear when you walk away
+- [x] ESC opens/closes the pause menu; its links work
+- [x] Mobile emulation (or WebGL disabled) shows the fallback panel, never a broken canvas
+- [x] `npm run build` and `npm run test` green
+- [x] A11–A16 recorded here as the only deviations found while executing the phase
 
 ### Task 1.1: `/world` route, guards, lazy canvas
 
@@ -1638,7 +1644,7 @@ git push -u origin main
 **Interfaces:**
 - Produces: `/world` (client page) that mounts `WorldCanvas` (default export, loaded via `next/dynamic` with `ssr: false`) only when WebGL exists and the pointer is fine; otherwise renders `WorldFallback`. `?force=1` bypasses the coarse-pointer check only (never the WebGL check).
 
-- [ ] **Step 1: Create `site/src/world/WorldCanvas.tsx` (temporary stub — replaced in Task 1.4):**
+- [x] **Step 1: Create `site/src/world/WorldCanvas.tsx` (temporary stub — replaced in Task 1.4):**
 
 ```tsx
 "use client";
@@ -1652,7 +1658,7 @@ export default function WorldCanvas() {
 }
 ```
 
-- [ ] **Step 2: Create `site/src/components/hud/WorldFallback.tsx`:**
+- [x] **Step 2: Create `site/src/components/hud/WorldFallback.tsx`:**
 
 ```tsx
 import Link from "next/link";
@@ -1699,7 +1705,7 @@ export function WorldFallback() {
 }
 ```
 
-- [ ] **Step 3: Create `site/src/app/world/page.tsx`:**
+- [x] **Step 3: Create `site/src/app/world/page.tsx`:**
 
 ```tsx
 "use client";
@@ -1750,9 +1756,9 @@ export default function WorldPage() {
 }
 ```
 
-- [ ] **Step 4: Verify.** Dev server: `/world` shows the stub text; browser devtools device emulation (iPhone) shows the fallback panel; `/world?force=1` in emulation shows the stub. `npm run build` green.
+- [x] **Step 4: Verify.** Dev server: `/world` shows the stub text; browser devtools device emulation (iPhone) shows the fallback panel; `/world?force=1` in emulation shows the stub. `npm run build` green.
 
-- [ ] **Step 5: Commit.**
+- [x] **Step 5: Commit.**
 
 ```powershell
 git add -A
@@ -1767,7 +1773,7 @@ git commit -m "feat: /world route with WebGL and pointer guards"
 **Interfaces:**
 - Produces: `RoomDef` / `PropDef` / `InteractableDef` / `Action` / `PanelTarget` / `DoorTarget` / `RoomPalette` types (below), `useWorldStore` (zustand) and the exported mutable `playerPos` object, and `rooms: Record<string, RoomDef>` containing `hub`. Every world task after this consumes these names.
 
-- [ ] **Step 1: Create `site/src/world/types.ts`:**
+- [x] **Step 1: Create `site/src/world/types.ts`:**
 
 ```ts
 export type Facing = "n" | "s" | "e" | "w";
@@ -1854,7 +1860,7 @@ export interface RoomDef {
 }
 ```
 
-- [ ] **Step 2: Create `site/src/world/store.ts`:**
+- [x] **Step 2: Create `site/src/world/store.ts`:**
 
 ```ts
 import { create } from "zustand";
@@ -1902,7 +1908,7 @@ export const useWorldStore = create<WorldState>((set) => ({
 }));
 ```
 
-- [ ] **Step 3: Create `site/src/world/rooms.ts`:**
+- [x] **Step 3: Create `site/src/world/rooms.ts`:**
 
 ```ts
 import type { RoomDef } from "./types";
@@ -1914,7 +1920,7 @@ export const rooms: Record<string, RoomDef> = {
 };
 ```
 
-- [ ] **Step 4: Create `site/src/world/rooms/hub.ts`.** The map is 19×15. Count characters carefully — every row is exactly 19 chars:
+- [x] **Step 4: Create `site/src/world/rooms/hub.ts`.** The map is 19×15. Count characters carefully — every row is exactly 19 chars:
 
 ```ts
 import type { RoomDef } from "../types";
@@ -2035,9 +2041,9 @@ export const hub: RoomDef = {
 };
 ```
 
-- [ ] **Step 5: Verify.** `npx tsc --noEmit` passes. `npm run build` green.
+- [x] **Step 5: Verify.** `npx tsc --noEmit` passes. `npm run build` green.
 
-- [ ] **Step 6: Commit.**
+- [x] **Step 6: Commit.**
 
 ```powershell
 git add -A
@@ -2053,7 +2059,7 @@ git commit -m "feat: world types, store, hub room data"
 **Interfaces:**
 - Produces: `makeGridMap(rows: string[], blocked?: BlockedRect[]): GridMap`, `canStand(map, x, z): boolean`, `moveWithCollision(map, from, delta): {x, z}`, `tileCharAt(rows, x, z): string`. `tileCharAt` returns `"#"` for out-of-bounds. Positions are floats in tile units; a tile's center is at its integer coordinates; the player radius is 0.3.
 
-- [ ] **Step 1: Write the failing test — `site/src/world/collision.test.ts`:**
+- [x] **Step 1: Write the failing test — `site/src/world/collision.test.ts`:**
 
 ```ts
 import { describe, expect, it } from "vitest";
@@ -2101,9 +2107,9 @@ describe("collision", () => {
 });
 ```
 
-- [ ] **Step 2: Run it to verify it fails.** `npm run test` → FAIL: cannot resolve `./collision`.
+- [x] **Step 2: Run it to verify it fails.** `npm run test` → FAIL: cannot resolve `./collision`.
 
-- [ ] **Step 3: Create `site/src/world/collision.ts`:**
+- [x] **Step 3: Create `site/src/world/collision.ts`:**
 
 ```ts
 import type { BlockedRect } from "./types";
@@ -2185,9 +2191,9 @@ export function moveWithCollision(
 }
 ```
 
-- [ ] **Step 4: Run the test to verify it passes.** `npm run test` → all collision tests PASS.
+- [x] **Step 4: Run the test to verify it passes.** `npm run test` → all collision tests PASS.
 
-- [ ] **Step 5: Commit.**
+- [x] **Step 5: Commit.**
 
 ```powershell
 git add site/src/world/collision.ts site/src/world/collision.test.ts
@@ -2206,7 +2212,7 @@ git commit -m "feat: tile-grid collision with wall-slide"
 - Consumes: `RoomDef`, `rooms`, `useWorldStore`.
 - Produces: `Scene({ room }: { room: RoomDef })`, `makeSignTexture`, `makeFloorTexture`, `ScreenTexture`. Sign/screen faces: `s` = rotation 0, `n` = π, `e` = π/2, `w` = −π/2.
 
-- [ ] **Step 1: Create `site/src/world/textures.ts`:**
+- [x] **Step 1: Create `site/src/world/textures.ts`:**
 
 ```ts
 import * as THREE from "three";
@@ -2291,7 +2297,7 @@ export function makeFloorTexture(
 }
 ```
 
-- [ ] **Step 2: Create `site/src/world/Floor.tsx`:**
+- [x] **Step 2: Create `site/src/world/Floor.tsx`:**
 
 ```tsx
 "use client";
@@ -2323,7 +2329,7 @@ export function Floor({ room }: { room: RoomDef }) {
 }
 ```
 
-- [ ] **Step 3: Create `site/src/world/Walls.tsx`.** One InstancedMesh for ALL wall tiles (AD-08 — never one mesh per tile):
+- [x] **Step 3: Create `site/src/world/Walls.tsx`.** One InstancedMesh for ALL wall tiles (AD-08 — never one mesh per tile):
 
 ```tsx
 "use client";
@@ -2372,7 +2378,7 @@ export function Walls({ room }: { room: RoomDef }) {
 }
 ```
 
-- [ ] **Step 4: Create `site/src/world/Props.tsx`:**
+- [x] **Step 4: Create `site/src/world/Props.tsx`:**
 
 ```tsx
 "use client";
@@ -2423,7 +2429,7 @@ function Prop({ def, accent }: { def: PropDef; accent: string }) {
 }
 ```
 
-- [ ] **Step 5: Create `site/src/world/Scene.tsx` (without PlayerController/InteractionSystem until Tasks 1.7/1.8):**
+- [x] **Step 5: Create `site/src/world/Scene.tsx` (without PlayerController/InteractionSystem until Tasks 1.7/1.8):**
 
 ```tsx
 "use client";
@@ -2458,7 +2464,7 @@ export function Scene({ room }: { room: RoomDef }) {
 }
 ```
 
-- [ ] **Step 6: Replace `site/src/world/WorldCanvas.tsx` with the real canvas:**
+- [x] **Step 6: Replace `site/src/world/WorldCanvas.tsx` with the real canvas:**
 
 ```tsx
 "use client";
@@ -2485,9 +2491,9 @@ export default function WorldCanvas() {
 }
 ```
 
-- [ ] **Step 7: Verify.** Dev server → `/world`: you see the hub room — dark floor with grid, walls, four door signs, terminal block with cyan screen, four pillars. Camera looks down at ~50°. No console errors. `npm run build` green.
+- [x] **Step 7: Verify.** Dev server → `/world`: you see the hub room — dark floor with grid, walls, four door signs, terminal block with cyan screen, four pillars. Camera looks down at ~50°. No console errors. `npm run build` green.
 
-- [ ] **Step 8: Commit.**
+- [x] **Step 8: Commit.**
 
 ```powershell
 git add -A
@@ -2502,7 +2508,7 @@ git commit -m "feat: instanced voxel room renderer"
 **Interfaces:**
 - Produces: `Character({ movingRef }: { movingRef: React.RefObject<boolean> })`. Renders ~1.8-unit-tall voxel humanoid, faces local +z. Reads `movingRef.current` each frame — no props that change per frame.
 
-- [ ] **Step 1: Create `site/src/world/Character.tsx`:**
+- [x] **Step 1: Create `site/src/world/Character.tsx`:**
 
 ```tsx
 "use client";
@@ -2592,9 +2598,9 @@ export function Character({
 }
 ```
 
-- [ ] **Step 2: Verify.** Add `<Character movingRef={{ current: false }} />` temporarily inside `Scene` — a motionless AJ.exe stands at room center (9, 0, 8): wrap it in `<group position={[9, 0, 8]}>`. Idle bob visible. Then remove the temporary usage (the controller wires it in Task 1.7). `npm run build` green.
+- [x] **Step 2: Verify.** Add `<Character movingRef={{ current: false }} />` temporarily inside `Scene` — a motionless AJ.exe stands at room center (9, 0, 8): wrap it in `<group position={[9, 0, 8]}>`. Idle bob visible. Then remove the temporary usage (the controller wires it in Task 1.7). `npm run build` green.
 
-- [ ] **Step 3: Commit.**
+- [x] **Step 3: Commit.**
 
 ```powershell
 git add site/src/world/Character.tsx
@@ -2609,7 +2615,7 @@ git commit -m "feat: AJ.exe voxel character"
 **Interfaces:**
 - Produces: `CameraRig({ target }: { target: React.RefObject<THREE.Object3D | null> })`. Fixed offset `(0, 10, 8)`, damped follow, look-at 1 unit above target. Consumed by PlayerController in Task 1.7.
 
-- [ ] **Step 1: Create `site/src/world/CameraRig.tsx`:**
+- [x] **Step 1: Create `site/src/world/CameraRig.tsx`:**
 
 ```tsx
 "use client";
@@ -2640,9 +2646,9 @@ export function CameraRig({
 }
 ```
 
-- [ ] **Step 2: Verify.** `npm run build` green (component is exercised in Task 1.7).
+- [x] **Step 2: Verify.** `npm run build` green (component is exercised in Task 1.7).
 
-- [ ] **Step 3: Commit.**
+- [x] **Step 3: Commit.**
 
 ```powershell
 git add site/src/world/CameraRig.tsx
@@ -2659,7 +2665,7 @@ git commit -m "feat: damped follow camera rig"
 **Interfaces:**
 - Produces: `getMoveDir(keys: Set<string>): Dir` (normalized), `useKeyboard({ onInteract, onPause }): RefObject<Set<string>>` (WASD + arrows; E = interact edge; ESC = pause; keys cleared on blur), `runAction(action: Action)`, `goThroughDoor(door: DoorTarget)`.
 
-- [ ] **Step 1: Write the failing test — `site/src/world/input.test.ts`:**
+- [x] **Step 1: Write the failing test — `site/src/world/input.test.ts`:**
 
 ```ts
 import { describe, expect, it } from "vitest";
@@ -2685,9 +2691,9 @@ describe("getMoveDir", () => {
 });
 ```
 
-- [ ] **Step 2: Run it to verify it fails.** `npm run test` → FAIL: cannot resolve `./input`.
+- [x] **Step 2: Run it to verify it fails.** `npm run test` → FAIL: cannot resolve `./input`.
 
-- [ ] **Step 3: Create `site/src/world/input.ts`:**
+- [x] **Step 3: Create `site/src/world/input.ts`:**
 
 ```ts
 import { useEffect, useRef } from "react";
@@ -2762,9 +2768,9 @@ export function useKeyboard(handlers: {
 }
 ```
 
-- [ ] **Step 4: Run the test to verify it passes.** `npm run test` → input tests PASS.
+- [x] **Step 4: Run the test to verify it passes.** `npm run test` → input tests PASS.
 
-- [ ] **Step 5: Create `site/src/world/actions.ts`:**
+- [x] **Step 5: Create `site/src/world/actions.ts`:**
 
 ```ts
 import { useWorldStore } from "./store";
@@ -2795,7 +2801,7 @@ export function goThroughDoor(door: DoorTarget) {
 }
 ```
 
-- [ ] **Step 6: Create `site/src/world/PlayerController.tsx`:**
+- [x] **Step 6: Create `site/src/world/PlayerController.tsx`:**
 
 ```tsx
 "use client";
@@ -2915,11 +2921,11 @@ Note: `CameraRig` must follow this group — add it inside the returned `<group>
   );
 ```
 
-- [ ] **Step 7: Modify `Scene.tsx`** — add `import { PlayerController } from "./PlayerController";` and render `<PlayerController />` after `<Props room={room} />`.
+- [x] **Step 7: Modify `Scene.tsx`** — add `import { PlayerController } from "./PlayerController";` and render `<PlayerController />` after `<Props room={room} />`.
 
-- [ ] **Step 8: Verify.** Dev server → `/world`: character stands south of the terminal facing north. WASD moves with walk animation; character turns toward movement; camera follows with damping; walls/pillars/terminal block; sliding along the north wall while holding W+A works. No console errors. `npm run build` + `npm run test` green.
+- [x] **Step 8: Verify.** Dev server → `/world`: character stands south of the terminal facing north. WASD moves with walk animation; character turns toward movement; camera follows with damping; walls/pillars/terminal block; sliding along the north wall while holding W+A works. No console errors. `npm run build` + `npm run test` green.
 
-- [ ] **Step 9: Commit.**
+- [x] **Step 9: Commit.**
 
 ```powershell
 git add -A
@@ -2936,7 +2942,7 @@ git commit -m "feat: player controller with input, camera follow, door hooks"
 **Interfaces:**
 - Produces: `nearestInteractable(interactables, pos)` (pure, tested), `InteractionSystem({ room })` (throttled prompt updates), and the HUD family. `Hud({ room }: { room: RoomDef })` is the single mount point WorldCanvas uses.
 
-- [ ] **Step 1: Write the failing test — `site/src/world/interaction.test.ts`:**
+- [x] **Step 1: Write the failing test — `site/src/world/interaction.test.ts`:**
 
 ```ts
 import { describe, expect, it } from "vitest";
@@ -2960,9 +2966,9 @@ describe("nearestInteractable", () => {
 });
 ```
 
-- [ ] **Step 2: Run it to verify it fails.** `npm run test` → FAIL: cannot resolve `./interaction`.
+- [x] **Step 2: Run it to verify it fails.** `npm run test` → FAIL: cannot resolve `./interaction`.
 
-- [ ] **Step 3: Create `site/src/world/interaction.ts`:**
+- [x] **Step 3: Create `site/src/world/interaction.ts`:**
 
 ```ts
 import type { InteractableDef } from "./types";
@@ -2984,9 +2990,9 @@ export function nearestInteractable(
 }
 ```
 
-- [ ] **Step 4: Run the test to verify it passes.** `npm run test` → interaction tests PASS.
+- [x] **Step 4: Run the test to verify it passes.** `npm run test` → interaction tests PASS.
 
-- [ ] **Step 5: Create `site/src/world/InteractionSystem.tsx`:**
+- [x] **Step 5: Create `site/src/world/InteractionSystem.tsx`:**
 
 ```tsx
 "use client";
@@ -3024,7 +3030,7 @@ export function InteractionSystem({ room }: { room: RoomDef }) {
 }
 ```
 
-- [ ] **Step 6: Create the HUD components.** `site/src/components/hud/PromptBar.tsx`:
+- [x] **Step 6: Create the HUD components.** `site/src/components/hud/PromptBar.tsx`:
 
 ```tsx
 export function PromptBar({ prompt }: { prompt: string }) {
@@ -3139,9 +3145,9 @@ export function Hud({ room }: { room: RoomDef }) {
 }
 ```
 
-- [ ] **Step 7: Wire up.** In `Scene.tsx` render `<InteractionSystem room={room} />` after `<PlayerController />`. In `WorldCanvas.tsx` render `<Hud room={room} />` right after `</Canvas>` (inside the wrapping div).
+- [x] **Step 7: Wire up.** In `Scene.tsx` render `<InteractionSystem room={room} />` after `<PlayerController />`. In `WorldCanvas.tsx` render `<Hud room={room} />` right after `</Canvas>` (inside the wrapping div).
 
-- [ ] **Step 8: Verify (Phase 1 exit gate).** Dev server → `/world`:
+- [x] **Step 8: Verify (Phase 1 exit gate).** Dev server → `/world`:
   - HUD top-left shows `AJ // RESEARCH FACILITY — CORE MAIN HUB`; bottom-left shows controls hint
   - Walk to the terminal: `[E] ACCESS TERMINAL` appears (E does nothing yet — correct, no action attached)
   - Walk to each door: `[E] ... — UNDER CONSTRUCTION` appears
@@ -3150,7 +3156,7 @@ export function Hud({ room }: { room: RoomDef }) {
   - No console errors; steady 60 fps (devtools performance or FPS overlay)
   - `npm run build` + `npm run test` green
 
-- [ ] **Step 9: Commit.**
+- [x] **Step 9: Commit.**
 
 ```powershell
 git add -A
@@ -3158,6 +3164,29 @@ git commit -m "feat: interaction system and world HUD"
 ```
 
 **Phase 1 exit gate** — verify all boxes at the top of this phase, then proceed.
+
+---
+
+### Phase 1 execution record (2026-09-14)
+
+Executed on branch `phase/1-world-prototype` (repo initialised at `portfolio/`, baseline commit of spec + docs first). Evidence, not assertions:
+
+| Check | How it was proven | Result |
+|---|---|---|
+| `npx tsc --noEmit` | run after Tasks 1.2, 1.4, 1.8 | exit 0 each time |
+| `npm run build` | run after Tasks 1.1, 1.2, 1.4, 1.8 | green; `/world` prerendered (proves the `ssr:false`-in-client-component pattern works) |
+| `npm run test` | collision (5), input (3), interaction (2) | 10/10 pass; each file seen failing first (module-not-found) before implementing |
+| Canvas actually renders | headless Chromium (`--use-angle=swiftshader`) screenshot of `/world` | hub visible: tiled floor, instanced walls, four readable sign textures, terminal block, pillars, AJ.exe with visor + blob shadow |
+| Prompts appear / clear | walk west 4 s → `[E] RESEARCH — UNDER CONSTRUCTION`; walk east 4 s → `[E] AGENT LAB — UNDER CONSTRUCTION`; walk away → cleared | pass |
+| Collision blocks | walk north 4 s from spawn: `ACCESS TERMINAL` still in range and `VISION LAB` door prompt **not** reached → the terminal tile stops the player | pass |
+| Wall-slide | unit test at the standable edge (`x=0.8`) plus the west-wall walk above | pass |
+| ESC layering | pause hides the prompt; `[ RESUME ]` restores it | pass |
+| Movement blocked while paused | byte-identical screenshots before/after 1.5 s of held movement while paused | pass |
+| Touch/no-WebGL path | Pixel-7-like context on `/world` → `WorldFallback` | pass |
+| Frame rate | **not claimed.** Software GL scales with pixels: 480×270 → 52 fps, 1280×720 → 9 fps, 1900×1080 → 4 fps, walking 8 fps. That is fill-rate of the CPU rasteriser, not scene cost | **open: needs 60 fps on a real integrated GPU** |
+| Console errors | only the two Phase-0 prefetch 404s (A15) | benign, self-resolving |
+
+Two things a human should still eyeball before Phase 2 is believed: the walk animation's readability at the fixed camera distance, and the fact that the hub's south-wall `ABOUT` sign shows its mirrored back face from the spawn camera (it reads correctly once you approach the door from inside — the camera sits further south than the wall).
 
 ---
 
