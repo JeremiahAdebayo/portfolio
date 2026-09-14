@@ -8,3 +8,7 @@ playwright-report/
 !.env.example
 *.tsbuildinfo
 .DS_Store
+# throwaway Phase 1 browser probes (site/verify-*.mjs), kept local as evidence
+/site/verify-*.mjs
+/site/gate-*.png
+/site/shot-*.png
