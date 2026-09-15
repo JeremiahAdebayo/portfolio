@@ -145,6 +145,7 @@ Written when Phases 3.3 → 7.4 were added. Read this before executing Phase 3; 
 | A25 | **Noctis's real agent roster is now known** and must drive Task 4.5's stations: `reset, indexer, planner, test_generator, engineer (parallel), reassembler, executor, critic` (+ `retry_router` as a gate, `debug_agent` as telemetry) | Task 4.5 guessed planner/researcher/coder/tester. Appendix D.4 forbids inventing agents for visual effect. `engineer` genuinely runs as N parallel instances via `Send`, so the room should fan several boxes out at once - that is the real architecture, and it is a better show than a linear chain. |
 | A26 | **Neither project has a deployed public endpoint, so both demos are animated, not live.** Nightfall launches in mock mode (plan Option A of Task 7.2) and the `/api/inspect` proxy + backend contract stay in the plan as the upgrade path; Noctis keeps trace replay (AD-05) but the traces must come from real runs of the 8-node graph. | The v1.1 plan already allowed mock mode, but Phase 3/4's exit gates assumed "real inference" and "AJ provides sample images". Reframed: the deliverable is an honest animated demonstration (conveyor + simulated verdicts badged SAMPLE/MOCK, replayed agent traces) plus a genuine written description. Nothing in the UI may imply live inference. |
 | A27 | Browser E2E must never assert on held-key duration; poll for state instead | `useFrame` clamps dt to 0.05s, so at software-GL frame rates (~9 fps) the player covers ~2 tiles/s, not the nominal 4.5. Time-based "hold W for 900 ms then expect room X" is flaky by construction - it produced three false failures while verifying Phase 2. Task 6.2's specs must hold a key until the HUD changes, with a budget. |
+| A28 | `SiteContent.owner` gains an `x` field (X/Twitter URL); Contact page, site Footer and the world's About panel all list the four channels | AJ supplied real handles on 2026-09-15 and asked for X alongside email/LinkedIn. `validateContent` checks every owner field, so the field is required rather than optional - a missing link is a content bug, not a silent gap. Contact display text is derived from the URL (one source of truth). |
 
 New decisions AD-15 → AD-18 are in §2 above. Everything else in §0–§4 stands as written.
 
@@ -6922,25 +6923,30 @@ Open the production URL in a fresh profile, logged out. From a Google search res
 
 ## D.2 The catalogue
 
-| Where | Marker | What only AJ can supply | Blocks launch? |
-|---|---|---|---|
-| `content/site.ts` | `owner.title` | the job title to be searched for | yes |
-| | `owner.tagline` | one sentence: what you build and why it matters | yes |
-| | `owner.location` | city, country (recruiters filter on this) | yes |
-| | `owner.email` / `github` / `linkedin` | real addresses; the world's comms terminal (Task 5.2) and every footer depend on these | yes |
-| | `research[*].summary` | 1–2 honest sentences per station | yes |
-| | `timeline[*]` | period, role, org, one-line impact | yes |
-| `content/projects.ts` | Nightfall `metrics[0..2]` | measured inference latency, AUROC (or the metric actually used), dataset name | yes — the monitor's `INFERENCE: 112 ms` and the result panel quote these |
-| | Nightfall `links[0].href` | the real repo URL, or the fact that it is private | yes |
-| | Noctis `technologies[2]`, `metrics[*]`, `links[0]` | the framework actually used, agent count, whatever was measured, repo URL | yes |
-| `content/samples.ts` | 5 × `caption` | what each sample actually is | yes |
-| `world/noctis/traces.ts` | `provenance`, `recordedAt` ×2 | real run provenance (Appendix B.3) | yes — a false provenance is worse than no demo |
-| `world/rooms/noctis.ts` | roster EDIT-ME (Task 4.5) | the **real** agent names/roles, or the honest subset of them | yes |
-| `world/rooms/closet.ts` → `site.ts secrets[]` | 5–7 lines (Task 5.5) | hours spent, what was cut and why, the worst bug | no (easter egg) |
-| `world/nightfall/Conveyor.tsx` | `INFERENCE: 112 ms` | measured latency, once a backend exists | no — the mock's number is labelled and the monitor is decoration |
-| `public/samples/*` | 5 image files | see D.3 | no (the upload path works without them) |
-| `public/resume.pdf` | one file | see D.8 | yes — `/resume` and the comms terminal both point at it |
+Refreshed 2026-09-15 (A24, A28). The plan originally listed these as unknowns;
+the ones marked DONE came from AJ or from the repositories themselves.
 
+| Status | Where | Marker | Note |
+|---|---|---|---|
+the ones marked DONE came from AJ or from the repositories themselves.
+
+| Status | Where | Marker | Note |
+|---|---|---|---|
+| DONE | `site.ts` `owner.title` | "Machine Learning Engineer" | AJ, 2026-09-15 |
+| DONE | `site.ts` `owner.tagline` | the "I'm AJ. I build ML systems..." sentence | AJ, verbatim |
+| DONE | `site.ts` `owner.email`, `github`, `linkedin`, `x` | real addresses; X added by A28 | AJ |
+| **OPEN** | `site.ts` `owner.location` | city, country. Recruiters filter on it; it renders on `/about` and in the world's About panel, so a placeholder is visible today | blocks launch |
+| **OPEN** | `site.ts` `timeline[*]` | period, role, org, one-line impact. One placeholder row currently renders on `/about` and `/resume` | blocks launch |
+| **OPEN** | `site.ts` `research[3]` (3D Vision) | either write it or delete the station. Left as `EDIT-ME` rather than invented, because neither repo supports a claim about it | blocks launch |
+| DONE | `projects.ts` Nightfall metrics, links, limitations | transcribed from the repo README (0.938 image AUROC, 0.651 PRO, 99.6->25.0 MB, 293 ms fp32 vs 1304 ms INT8) | |
+| **OPEN** | `projects.ts` Nightfall pixel AUROC | the one metric the README does not state; currently shown as `(pixel AUROC: EDIT-ME)` inside the PRO tile | blocks launch |
+| DONE | `projects.ts` Noctis everything | from graph.py / schemas.py / litellm config | |
+| OPEN | `samples.ts` 5 x `caption` | what each sample actually is | Task 3.7 |
+| OPEN | `noctis/traces.ts` `provenance`, `recordedAt` | real run provenance (B.3); needs AJ to run Noctis and record | blocks launch |
+| DONE | `rooms/noctis.ts` roster | the eight real graph nodes, A25 | |
+| OPEN | `closet` `secrets[]` | hours spent, what was cut, worst bug | easter egg, not launch |
+| OPEN | `public/samples/*` | 5 image files, see D.3 | upload path works without them |
+| **BROKEN NOW** | `public/resume.pdf` | missing file, so `/resume.pdf` 404s from `/resume`, the landing button and the world's resume pickup. Everything else on those pages works; only the PDF link is dead | blocks launch |
 ## D.3 Sample images (`public/samples/`)
 
 Five files matching the ids in `content/samples.ts`: `gear-01`, `gear-02`, `seal-01`, `seal-02`, `belt-01` — three nominal, two defective, JPEG at 800–1600 px on the long edge, < 1 MB each. Requirements, in order of how often they are forgotten: (1) they must be from **the same distribution the model was trained on**, or the demo's verdicts are theatre; (2) no proprietary or client imagery — a public dataset (MVTec AD's licence permits derivative demonstration use, check the terms as they stand when you read this) or your own photographs; (3) label each file's truth in `samples.ts` and nowhere else on disk, so the UI can compare verdict against label (Task 3.8 Step 3). If the truth is "I have no images yet", ship the upload path only and delete the samples tab — do not ship stock photos of gears.
