@@ -10,12 +10,14 @@ import type { SiteContent } from "./types";
 export const site: SiteContent = {
   owner: {
     name: "AJ",
-    title: "EDIT-ME: e.g. Machine Learning Engineer",
-    tagline: "EDIT-ME: one sentence — what you build and why it matters.",
+    title: "Machine Learning Engineer",
+    tagline:
+      "I'm AJ. I build ML systems from scratch and ship them, on the path toward founding something of my own.",
     location: "EDIT-ME: City, Country",
-    email: "EDIT-ME@example.com",
+    email: "jrmhadebayo@gmail.com",
     github: "https://github.com/JeremiahAdebayo",
-    linkedin: "https://www.linkedin.com/in/EDIT-ME",
+    linkedin: "https://linkedin.com/in/jadebayo24",
+    x: "https://x.com/AJololade",
     resumeUrl: "/resume.pdf",
   },
   research: [

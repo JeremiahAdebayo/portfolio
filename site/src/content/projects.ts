@@ -53,6 +53,48 @@ export const projects: Project[] = [
       title: "VISION LAB",
       subtitle: "Visual Anomaly Detection",
       accent: "#f6ad55",
+      frame: {
+        title: "THE IDEA",
+        body: "Anomaly detection rebuilt from scratch: learn what normal looks like, then flag any deviation. No labelled defects. 15 MVTec AD categories, ONNX export, INT8 quantization, gRPC serving and an ESP32 client.",
+      },
+      github: { label: "GitHub", href: "https://github.com/JeremiahAdebayo/Nightfall" },
+      belt: [
+        {
+          id: "bottle",
+          category: "bottle",
+          label: "BOTTLE",
+          image: null, // "/samples/bottle.jpg" once AJ supplies the photo
+          rows: [
+            { label: "Image AUROC", value: "0.997" },
+            { label: "PRO", value: "0.701" },
+          ],
+          source: "Nightfall README, MVTec AD, WideResNet50 fp32",
+        },
+        {
+          id: "cable",
+          category: "cable",
+          label: "CABLE",
+          image: null,
+          rows: [
+            { label: "Image AUROC", value: "0.927" },
+            { label: "PRO", value: "0.497" },
+            { label: "Reads as", value: "flags it, localises it badly" },
+          ],
+          source: "Nightfall README, MVTec AD, WideResNet50 fp32",
+        },
+        {
+          id: "grid",
+          category: "grid",
+          label: "GRID",
+          image: null,
+          rows: [
+            { label: "Image AUROC", value: "0.799" },
+            { label: "PRO", value: "0.558" },
+            { label: "Note", value: "hard category in the literature" },
+          ],
+          source: "Nightfall README, MVTec AD, WideResNet50 fp32",
+        },
+      ],
     },
   },
   {
@@ -103,6 +145,29 @@ export const projects: Project[] = [
       title: "AGENT LAB",
       subtitle: "Autonomous Multi-Agent Software Engineering",
       accent: "#48bb78",
+      frame: {
+        title: "THE LOOP",
+        body: "A bug report goes in, a verified patch comes out. Agents share one state graph: index the repo, plan per file, write the failing test, patch one AST node, run pytest, judge - and loop back if it fails.",
+      },
+      github: { label: "GitHub", href: "https://github.com/JeremiahAdebayo/Noctis" },
+      // Mirrors agent/graph.py. The failing verdict and the hop back to the
+      // planner are not decoration: that retry edge is what makes a multi-agent
+      // system worth building, so the cycle shows it on every lap.
+      pipeline: [
+        { agent: "reset", caption: "restoring workspace", artifact: "SNAPSHOT", ok: true },
+        { agent: "indexer", caption: "mapping the repo", artifact: "CODE MAP", ok: true },
+        { agent: "planner", caption: "planning the fix", artifact: "WORK PACKAGES", ok: true },
+        { agent: "test_generator", caption: "writing failing test", artifact: "PYTEST FILE", ok: true },
+        { agent: "engineer", caption: "patching one node", artifact: "PATCH", ok: true },
+        { agent: "reassembler", caption: "applying the patch", artifact: "PATCHED SOURCE", ok: true },
+        { agent: "executor", caption: "running the suite", artifact: "TEST RESULT", ok: true },
+        { agent: "critic", caption: "test failed - looping", artifact: "FEEDBACK", ok: false },
+        { agent: "planner", caption: "re-planning file", artifact: "WORK PACKAGES", ok: true },
+        { agent: "engineer", caption: "patching one node", artifact: "PATCH", ok: true },
+        { agent: "reassembler", caption: "applying the patch", artifact: "PATCHED SOURCE", ok: true },
+        { agent: "executor", caption: "running the suite", artifact: "TEST RESULT", ok: true },
+        { agent: "critic", caption: "suite green", artifact: "VERIFIED", ok: true },
+      ],
     },
   },
 ];
