@@ -4,15 +4,15 @@ import { site } from "@/content/site";
 export const metadata: Metadata = { title: "Contact" };
 
 export default function ContactPage() {
-  // The display text is derived from the URL, never typed again beside it: the
-  // old hardcoded "github.com/EDIT-ME" duplicated content outside src/content
-  // (AD-01) and went stale the moment the real handle landed.
-  const short = (url: string) => url.replace(/^https?:\/\//, "").replace(/\/+$/, "");
-
+  // Cards carry the channel NAME only, never the URL (AJ, 2026-09-15): the href
+  // is the link, repeating it as visible text is noise. Nothing here is typed
+  // again from content either way - the old hardcoded "github.com/EDIT-ME" was a
+  // second source of truth and went stale the moment the real handle landed.
   const channels = [
-    { label: "Email", href: `mailto:${site.owner.email}`, value: site.owner.email },
-    { label: "GitHub", href: site.owner.github, value: short(site.owner.github) },
-    { label: "LinkedIn", href: site.owner.linkedin, value: short(site.owner.linkedin) },
+    { label: "Email", href: `mailto:${site.owner.email}` },
+    { label: "GitHub", href: site.owner.github },
+    { label: "LinkedIn", href: site.owner.linkedin },
+    { label: "X", href: site.owner.x },
   ];
   return (
     <div className="mx-auto max-w-3xl px-6 py-16">
@@ -29,20 +29,17 @@ export default function ContactPage() {
       >
         [ SEND EMAIL ]
       </a>
-      <div className="mt-10 grid gap-4 sm:grid-cols-3">
+      <div className="mt-10 grid gap-4 sm:grid-cols-2">
         {channels.map((c) => (
           <a
             key={c.label}
             href={c.href}
-            target={c.label === "Email" ? undefined : "_blank"}
+            target={c.href.startsWith("mailto:") ? undefined : "_blank"}
             rel="noreferrer"
-            className="rounded-lg border border-facility-border bg-facility-surface p-4 hover:border-accent"
+            className="group rounded-lg border border-facility-border bg-facility-surface p-4 hover:border-accent"
           >
-            <p className="font-mono text-xs uppercase text-facility-muted">
-              {c.label}
-            </p>
-            <p className="mt-1 truncate font-mono text-sm text-accent">
-              {c.value}
+            <p className="font-mono text-sm font-bold tracking-widest text-facility-text group-hover:text-accent">
+              {c.label.toUpperCase()}
             </p>
           </a>
         ))}

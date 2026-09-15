@@ -26,6 +26,14 @@ export function Footer() {
         >
           LinkedIn
         </a>
+        <a
+          href={site.owner.x}
+          target="_blank"
+          rel="noreferrer"
+          className="hover:text-accent"
+        >
+          X
+        </a>
         <span className="ml-auto">Next.js · three.js · React Three Fiber</span>
       </div>
     </footer>

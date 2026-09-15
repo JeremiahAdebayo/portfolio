@@ -57,19 +57,25 @@ export function PanelHost() {
             </li>
           ))}
         </ul>
-        <p className="mt-6 font-mono text-xs text-facility-muted">
-          <a href={`mailto:${site.owner.email}`} className="text-accent hover:underline">
-            {site.owner.email}
-          </a>{" "}
-          ·{" "}
-          <a href={site.owner.github} target="_blank" rel="noreferrer" className="text-accent hover:underline">
-            GitHub
-          </a>{" "}
-          ·{" "}
-          <a href={site.owner.linkedin} target="_blank" rel="noreferrer" className="text-accent hover:underline">
-            LinkedIn
-          </a>
-        </p>
+        <ul className="mt-6 flex flex-wrap gap-x-4 gap-y-1 font-mono text-xs">
+          {[
+            { label: site.owner.email, href: `mailto:${site.owner.email}` },
+            { label: "GitHub", href: site.owner.github },
+            { label: "LinkedIn", href: site.owner.linkedin },
+            { label: "X", href: site.owner.x },
+          ].map((c) => (
+            <li key={c.label}>
+              <a
+                href={c.href}
+                target={c.href.startsWith("mailto:") ? undefined : "_blank"}
+                rel="noreferrer"
+                className="text-accent hover:underline"
+              >
+                {c.label}
+              </a>
+            </li>
+          ))}
+        </ul>
       </ProjectPanel>
     );
   }
