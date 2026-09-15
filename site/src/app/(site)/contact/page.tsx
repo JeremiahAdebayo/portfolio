@@ -4,14 +4,15 @@ import { site } from "@/content/site";
 export const metadata: Metadata = { title: "Contact" };
 
 export default function ContactPage() {
+  // The display text is derived from the URL, never typed again beside it: the
+  // old hardcoded "github.com/EDIT-ME" duplicated content outside src/content
+  // (AD-01) and went stale the moment the real handle landed.
+  const short = (url: string) => url.replace(/^https?:\/\//, "").replace(/\/+$/, "");
+
   const channels = [
     { label: "Email", href: `mailto:${site.owner.email}`, value: site.owner.email },
-    { label: "GitHub", href: site.owner.github, value: "github.com/EDIT-ME" },
-    {
-      label: "LinkedIn",
-      href: site.owner.linkedin,
-      value: "linkedin.com/in/EDIT-ME",
-    },
+    { label: "GitHub", href: site.owner.github, value: short(site.owner.github) },
+    { label: "LinkedIn", href: site.owner.linkedin, value: short(site.owner.linkedin) },
   ];
   return (
     <div className="mx-auto max-w-3xl px-6 py-16">
