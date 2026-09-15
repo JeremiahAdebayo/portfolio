@@ -1,7 +1,11 @@
 "use client";
 
-import { useMemo } from "react";
-import { makeSignTexture } from "./textures";
+import { useEffect, useMemo } from "react";
+import {
+  makeFrameTexture,
+  makePlaqueTexture,
+  makeSignTexture,
+} from "./textures";
 import type { PropDef, RoomDef } from "./types";
 
 const FACING_ROT: Record<string, number> = {
@@ -22,22 +26,37 @@ export function Props({ room }: { room: RoomDef }) {
 }
 
 function Prop({ def, accent }: { def: PropDef; accent: string }) {
-  const signTexture = useMemo(
-    () =>
-      def.type === "sign" && def.text
-        ? makeSignTexture(def.text, { accent })
-        : null,
-    [def.type, def.text, accent],
-  );
+  // One canvas texture per text prop, and it is released when the prop leaves
+  // the room. Room switches unmount these, so not disposing leaks a GPU texture
+  // per sign per visit.
+  const texture = useMemo(() => {
+    if (!def.text) return null;
+    if (def.type === "sign") return makeSignTexture(def.text, { accent });
+    if (def.type === "frame" && def.body) {
+      return makeFrameTexture(def.text, def.body, { accent });
+    }
+    if (def.type === "plaque") return makePlaqueTexture(def.text, { accent });
+    return null;
+  }, [def.type, def.text, def.body, accent]);
+
+  useEffect(() => () => texture?.dispose(), [texture]);
+
+  if (def.type === "frame" && !texture) {
+    // A frame with no copy is a blank picture; show the plain panel instead of
+    // a stretched canvas of nothing.
+    return (
+      <mesh position={def.pos} rotation={[0, FACING_ROT[def.face ?? "s"], 0]}>
+        <boxGeometry args={def.size} />
+        <meshLambertMaterial color={def.color ?? "#3b465c"} />
+      </mesh>
+    );
+  }
 
   return (
-    <mesh
-      position={def.pos}
-      rotation={[0, FACING_ROT[def.face ?? "s"], 0]}
-    >
+    <mesh position={def.pos} rotation={[0, FACING_ROT[def.face ?? "s"], 0]}>
       <boxGeometry args={def.size} />
-      {def.type === "sign" && signTexture ? (
-        <meshBasicMaterial map={signTexture} />
+      {texture ? (
+        <meshBasicMaterial map={texture} />
       ) : (
         <meshLambertMaterial color={def.color ?? "#3b465c"} />
       )}

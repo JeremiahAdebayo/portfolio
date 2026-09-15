@@ -1,4 +1,8 @@
 import type { RoomDef } from "../types";
+import { projects } from "@/content/projects";
+
+// See nightfall.ts: the frame's text and the repo link are content.
+const project = projects.find((p) => p.slug === "noctis")!;
 
 /**
  * Phase 2 shell. Task 4.5 replaces the props with the eight agent stations
@@ -56,6 +60,23 @@ export const noctis: RoomDef = {
       face: "e",
     },
     { type: "box", pos: [9, 0.5, 6], size: [1.6, 1, 1.6], color: "#31423a" },
+    // Wall "painting" on the east wall, opposite the doorway so it is the first
+    // thing you see on the way in.
+    {
+      type: "frame",
+      pos: [17.42, 1.9, 10],
+      size: [3.6, 2.25, 0.14],
+      text: project.room.frame.title,
+      body: project.room.frame.body,
+      face: "w",
+    },
+    {
+      type: "plaque",
+      pos: [17.37, 0.72, 10],
+      size: [1.7, 0.32, 0.1],
+      text: "OPEN GITHUB",
+      face: "w",
+    },
   ],
   blocked: [{ x: 8, z: 5, w: 2, d: 2 }],
   interactables: [
@@ -65,6 +86,13 @@ export const noctis: RoomDef = {
       radius: 1.8,
       prompt: "VIEW AGENT SYSTEM",
       action: { type: "panel", panel: { kind: "project", slug: "noctis" } },
+    },
+    {
+      id: "nx-github",
+      pos: [16, 10],
+      radius: 1.6,
+      prompt: "OPEN NOCTIS REPO",
+      action: { type: "link", href: project.room.github.href },
     },
   ],
   doors: {

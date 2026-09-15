@@ -8,9 +8,25 @@ export function runAction(action: Action) {
       store.openPanel(action.panel);
       break;
     case "link":
-      window.open(action.href, "_blank", "noopener");
+      openExternal(action.href);
       break;
   }
+}
+
+/**
+ * An anchor click, not window.open. Measured in headless Chromium: a real
+ * target=_blank anchor opens a tab, while window.open(url, "_blank", "noopener")
+ * silently does not (the feature string is what kills it), and a GitHub link that
+ * nothing happens when you press is worse than no link at all. The anchor keeps
+ * the same protection - rel="noopener noreferrer" - and inherits the user
+ * activation from the keydown that got us here.
+ */
+function openExternal(href: string) {
+  const a = document.createElement("a");
+  a.href = href;
+  a.target = "_blank";
+  a.rel = "noopener noreferrer";
+  a.click();
 }
 
 export function goThroughDoor(door: DoorTarget) {

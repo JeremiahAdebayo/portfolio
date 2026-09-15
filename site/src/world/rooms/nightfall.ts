@@ -1,4 +1,9 @@
 import type { RoomDef } from "../types";
+import { projects } from "@/content/projects";
+
+// The frame and the GitHub plaque are content, not world data (AD-01): the same
+// strings the /projects/nightfall page renders.
+const project = projects.find((p) => p.slug === "nightfall")!;
 
 /**
  * Phase 2 shell. Task 3.1 replaces these props with the full inspection line;
@@ -54,6 +59,23 @@ export const nightfall: RoomDef = {
     },
     { type: "box", pos: [4, 0.5, 9], size: [1, 1, 1], color: "#4a4038" },
     { type: "box", pos: [14, 0.5, 9], size: [1, 1, 1], color: "#4a4038" },
+    // Wall "painting" on the west wall, readable from the room. 3.6 x 2.25 is
+    // the 1024x640 canvas aspect, so the text is never stretched.
+    {
+      type: "frame",
+      pos: [0.58, 1.9, 7],
+      size: [3.6, 2.25, 0.14],
+      text: project.room.frame.title,
+      body: project.room.frame.body,
+      face: "e",
+    },
+    {
+      type: "plaque",
+      pos: [0.63, 0.72, 7],
+      size: [1.7, 0.32, 0.1],
+      text: "OPEN GITHUB",
+      face: "e",
+    },
   ],
   blocked: [
     { x: 4, z: 9, w: 1, d: 1 },
@@ -80,6 +102,13 @@ export const nightfall: RoomDef = {
       radius: 1.4,
       prompt: "TECHNICAL DETAILS",
       action: { type: "panel", panel: { kind: "project", slug: "nightfall" } },
+    },
+    {
+      id: "nf-github",
+      pos: [2, 7],
+      radius: 1.6,
+      prompt: "OPEN NIGHTFALL REPO",
+      action: { type: "link", href: project.room.github.href },
     },
   ],
   doors: {
