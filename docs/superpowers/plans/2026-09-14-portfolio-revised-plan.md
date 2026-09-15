@@ -141,6 +141,10 @@ Written when Phases 3.3 → 7.4 were added. Read this before executing Phase 3; 
 | A21 | `useKeyboard` publishes its latest handlers in an effect instead of during render (Task 1.7) | `h.current = handlers` in the render body trips `react-hooks/refs`, and it is genuinely wrong under React 19 concurrency: a discarded render would mutate the ref. Effects flush after commit, before any input event can arrive, so the behaviour is identical. |
 | A22 | Task 0.7 additions: each `opengraph-image.tsx` text block is one child (`{`${site.owner.name} // RESEARCH FACILITY`}`), and the root layout sets `metadataBase` from `NEXT_PUBLIC_SITE_URL` | As written, the OG image div held two children (an expression plus text) and Satori refuses that without `display: flex`: the build failed while prerendering `/opengraph-image`. Without `metadataBase` every build warns and social previews get relative image URLs. |
 | A23 | If a route file is deleted or renamed, remove `.next/dev` and `.next/types` before trusting `npx tsc --noEmit` | Next generates typed-route validators into `.next/(dev/)types`, and tsconfig includes them. A stale validator references the deleted `src/app/page.tsx` and reports `TS2307` plus a missing `LayoutProps` global, which looks like an app bug and is not one. This is why the plan's Task 0.3 Step 6 (delete the scaffold page) needs a clean cache before the next type check. |
+| A24 | Real repository facts replace the plan's invented project copy (`src/content/projects.ts`, `site.ts`) | The plan's sample content described Nightfall as "built around PatchCore" using anomalib and Noctis as a generic planner/researcher/coder/tester. The actual repositories (JeremiahAdebayo/Nightfall, /Noctis) are different and considerably stronger: Nightfall hand-rolls the whole algorithm across all 15 MVTec AD categories and carries it through ONNX, INT8, gRPC, a REST gateway and an ESP32 client; Noctis is a LangGraph StateGraph with 8 named nodes, `Send` fan-out to parallel engineers and libcst node-level patching. Portfolio copy that understates or misstates the work is worse than no copy. Numbers now in content: 0.938 mean image AUROC, 0.651 PRO, 99.6 to 25.0 MB, 293 ms fp32 vs 1304 ms INT8 p50. |
+| A25 | **Noctis's real agent roster is now known** and must drive Task 4.5's stations: `reset, indexer, planner, test_generator, engineer (parallel), reassembler, executor, critic` (+ `retry_router` as a gate, `debug_agent` as telemetry) | Task 4.5 guessed planner/researcher/coder/tester. Appendix D.4 forbids inventing agents for visual effect. `engineer` genuinely runs as N parallel instances via `Send`, so the room should fan several boxes out at once - that is the real architecture, and it is a better show than a linear chain. |
+| A26 | **Neither project has a deployed public endpoint, so both demos are animated, not live.** Nightfall launches in mock mode (plan Option A of Task 7.2) and the `/api/inspect` proxy + backend contract stay in the plan as the upgrade path; Noctis keeps trace replay (AD-05) but the traces must come from real runs of the 8-node graph. | The v1.1 plan already allowed mock mode, but Phase 3/4's exit gates assumed "real inference" and "AJ provides sample images". Reframed: the deliverable is an honest animated demonstration (conveyor + simulated verdicts badged SAMPLE/MOCK, replayed agent traces) plus a genuine written description. Nothing in the UI may imply live inference. |
+| A27 | Browser E2E must never assert on held-key duration; poll for state instead | `useFrame` clamps dt to 0.05s, so at software-GL frame rates (~9 fps) the player covers ~2 tiles/s, not the nominal 4.5. Time-based "hold W for 900 ms then expect room X" is flaky by construction - it produced three false failures while verifying Phase 2. Task 6.2's specs must hold a key until the HUD changes, with a budget. |
 
 New decisions AD-15 → AD-18 are in §2 above. Everything else in §0–§4 stands as written.
 
@@ -3237,9 +3241,9 @@ Two things a human should still eyeball before Phase 2 is believed: the walk ani
 
 **Exit gate:**
 
-- [ ] Walking through hub's N door fades to the Nightfall shell; E door to Noctis; doors back return to hub — no way to escape the map through a door tile
-- [ ] Hub terminal opens the About panel; Nightfall/Noctis terminals open their project panels; all panels close via ESC/× and pause movement
-- [ ] `/world?room=nightfall` starts inside Nightfall; the "ENTER THE LAB" button on `/projects/nightfall` works
+- [x] Walking through hub's N door fades to the Nightfall shell; E door to Noctis; doors back return to hub — no way to escape the map through a door tile
+- [x] Hub terminal opens the About panel; Nightfall/Noctis terminals open their project panels; all panels close via ESC/× and pause movement
+- [x] `/world?room=nightfall` starts inside Nightfall; the "ENTER THE LAB" button on `/projects/nightfall` works
 
 ### Task 2.1: Room shells + door wiring
 
@@ -3273,8 +3277,8 @@ Shell props (replaced by full environments in Phases 3–4): one `sign` prop on 
 
 Hub edits: add to `doors`: `"9,0": { targetRoom: "nightfall", spawn: { x: 9, z: 11 }, facing: "n" }` and `"18,7": { targetRoom: "noctis", spawn: { x: 1, z: 6 }, facing: "e" }`. Delete the `door-n` and `door-e` interactables (doors now auto-teleport on step). Keep `door-w`/`door-s` construction prompts until Phase 5.
 
-- [ ] Verify: dev server — walk through each door both ways with the fade transition; walking onto a door tile and back does not re-trigger (door lock); you cannot walk off the map through a doorway (outside tiles are solid). `npm run build` + `npm run test` green.
-- [ ] Commit: `git add -A && git commit -m "feat: nightfall and noctis room shells with door teleports"`
+- [x] Verify: dev server — walk through each door both ways with the fade transition; walking onto a door tile and back does not re-trigger (door lock); you cannot walk off the map through a doorway (outside tiles are solid). `npm run build` + `npm run test` green.
+- [x] Commit: `git add -A && git commit -m "feat: nightfall and noctis room shells with door teleports"`
 
 ### Task 2.2: Real content panels
 
@@ -3291,8 +3295,8 @@ Hub edits: add to `doors`: `"9,0": { targetRoom: "nightfall", spawn: { x: 9, z: 
   - `kind: "research"` → Research panel: `site.research` stations as compact cards.
   - `kind: "demo"` → return `null` (wired in Phase 3).
 
-- [ ] Verify: temporarily add an interactable with a project panel action, open it, check sections render identically to `/projects/nightfall`, ESC closes, movement is blocked while open. `npm run build` green.
-- [ ] Commit: `git add -A && git commit -m "feat: world panels render shared content"`
+- [x] Verify: temporarily add an interactable with a project panel action, open it, check sections render identically to `/projects/nightfall`, ESC closes, movement is blocked while open. `npm run build` green.
+- [x] Commit: `git add -A && git commit -m "feat: world panels render shared content"`
 
 ### Task 2.3: Wire interactables to panels
 
@@ -3310,8 +3314,8 @@ Hub edits: add to `doors`: `"9,0": { targetRoom: "nightfall", spawn: { x: 9, z: 
 
 Also add a sign prop to each lab labeling the door back (`text: "← CORE HUB"` above the interior side of the door, facing into the room).
 
-- [ ] Verify: each prompt appears at the right spot; E opens the right panel; walking away clears the prompt; no prompt shows while a panel is open.
-- [ ] Commit: `git add -A && git commit -m "feat: interactables open content panels"`
+- [x] Verify: each prompt appears at the right spot; E opens the right panel; walking away clears the prompt; no prompt shows while a panel is open.
+- [x] Commit: `git add -A && git commit -m "feat: interactables open content panels"`
 
 ### Task 2.4: Deep links
 
@@ -3319,22 +3323,63 @@ Also add a sign prop to each lab labeling the door back (`text: "← CORE HUB"` 
 
 Add a mount-only `useEffect`: read `new URLSearchParams(window.location.search).get("room")`; if `rooms[room]` exists and is not `"hub"`, call `useWorldStore.getState().enterRoom(room, rooms[room].spawn)`. A brief hub flash before the swap is acceptable — do not add a loading state for it.
 
-- [ ] Verify: `/world?room=nightfall` and `/world?room=noctis` start in the right room; `/world?room=nonsense` starts in hub; the "ENTER THE LAB" buttons on project pages work end-to-end.
-- [ ] Commit: `git add -A && git commit -m "feat: world deep links"`
+- [x] Verify: `/world?room=nightfall` and `/world?room=noctis` start in the right room; `/world?room=nonsense` starts in hub; the "ENTER THE LAB" buttons on project pages work end-to-end.
+- [x] Commit: `git add -A && git commit -m "feat: world deep links"`
 
 ---
 
-# Phase 3 — Nightfall room: full environment + live demo
+## Phase 2 execution record (2026-09-15)
 
-**Goal:** The complete industrial lab (spec §11) with a working inspection demo: upload an image, get a real (or clearly-labeled mock) inference result with heatmap, score, and latency — rate-limited, timeout-guarded, degrading gracefully.
+Tasks 2.1–2.4 executed on `phase/1-world-prototype`. The hub now has two live
+doorways; Nightfall and Noctis are walkable rooms whose terminals open panels
+rendered from `src/content/` (the same `ProjectSections` body the pages use), and
+`/world?room=<slug>` deep links work.
+
+| Gate | Evidence |
+|---|---|
+| Doors both ways, no escape through a doorway | probe: Nightfall south doorway → hub, and the same doorway re-enters Nightfall; identical round trip for Noctis's west doorway. Door lock verified by the return leg not re-triggering. |
+| Panels show real content | probe: `// Nightfall — VISION LAB` panel contains "0.938 mean over 15 MVTec categories" and the unfavourable "1304 ms INT8"; `Noctis — AGENT LAB` panel lists the real graph nodes (`reassembler`, `critic`); hub terminal opens the About panel with the timeline. |
+| ESC layering | probe: ESC closes a panel without opening the pause menu; with no panel open, ESC opens it. |
+| Deep links | probe: `?room=nightfall` / `?room=noctis` start in the right room; an unknown or not-yet-registered room (e.g. `?room=research`) falls back to the hub rather than a blank world. |
+| Collision and prompts intact | probe: a straight north walk from spawn is stopped by the central terminal (`[E] ACCESS TERMINAL` appears), i.e. blocked props still block. |
+| Gates | `npx tsc --noEmit` 0 · `npm run lint` 0 · `npm run test` 12/12 · `npm run build` green (13 routes) · zero console errors in every scenario. |
+
+**Deviation from the plan's commit granularity:** Tasks 2.1 and 2.3 edit the same
+room-data files (a room's `interactables` are part of its `RoomDef`), so they land
+as one commit; 2.2 and 2.4 are separate. Task 2.1's "no interactables yet" step
+therefore does not exist as a separate state.
+
+**Two things a human should look at before Phase 3 is trusted:**
+1. The hub's central terminal sits exactly on the spawn→north-door axis, so the
+   first thing every visitor does is walk into it. It reads as intentional
+   furniture and `[E]` explains it, but if it feels like a wall, move the terminal
+   to tile (9,5)→(8,5) or shift spawn to x=11.
+2. The lab doorways have no `[E]` prompt any more (they teleport on step, per
+   Task 2.1). The `← CORE HUB` signs are what tell you a doorway is a doorway.
+   Walk it yourself and decide whether that is enough signalling.
+
+---
+# Phase 3 — Nightfall room: full environment + animated inspection demo
+
+> **Amended 2026-09-15 (A26).** Nightfall has no deployed public endpoint, so this
+> phase ships the **animated** demo: the visitor's image is resized, scored by the
+> deterministic mock and badged `SAMPLE MODE`, with the anomaly map drawn over it.
+> Everything else about the phase is unchanged — the `/api/inspect` proxy, its
+> validation, rate limiting and backend contract (Appendix A) are still built,
+> because they are what makes the demo switchable to live inference later without
+> touching the UI. **Nothing in the UI may imply live inference while the mock is
+> what is running.** The live path becomes opt-in when a backend exists (Task 7.2
+> Option B), not a launch requirement.
+
+**Goal:** The complete industrial lab (spec §11) with a working inspection demo: upload an image, get a clearly-labelled simulated inference result with heatmap, score, and latency — through a rate-limited, timeout-guarded proxy that degrades gracefully.
 
 **Exit gate:**
 
 - [ ] Room reads as an inspection station: conveyor with moving products, gantry camera, live monitor, anomaly samples, glowing TRY IT YOURSELF sign
-- [ ] Demo: upload → result panel with status/score/latency/heatmap; samples tab works once AJ provides images
+- [ ] Demo: upload → result panel with status/score/latency/heatmap, badged SAMPLE/MOCK; samples tab works once AJ provides images
 - [ ] `/api/inspect`: 400 missing field, 415 non-image, 413 over 2 MB, 429 after 5 rapid requests, 503 backend down, 504 on timeout, mock result when `NIGHTFALL_MOCK=1`
 - [ ] With the backend unreachable, the demo still works in clearly-badged sample mode
-- [ ] `npm run build` + `npm run test` green
+- [ ] `npm run build` + `npm run test` + `npm run lint` green
 
 ### Task 3.1: Full room environment
 
@@ -5367,11 +5412,19 @@ Add `useMemo` to the react import line. The label plane is left at rotation 0 de
 ```ts
 import type { StationDef } from "../noctis/trace-types";
 
+// The REAL node names from Noctis agent/graph.py (plan A25), laid out as the
+// execution order they actually run in: five stations along the north wall,
+// three along the south, so the retry hop (critic -> planner) crosses the room
+// where a visitor can see it.
 export const noctisStations: StationDef[] = [
-  { id: "planner", role: "PLANNER AGENT", about: "Decomposes the task into work packages and decides who goes next.", tile: [5, 3] },
-  { id: "researcher", role: "RESEARCH AGENT", about: "Gathers context: files, docs, prior failures.", tile: [13, 3] },
-  { id: "coder", role: "CODE AGENT", about: "Writes the patch. The only agent allowed to produce one.", tile: [13, 9] },
-  { id: "tester", role: "TEST AGENT", about: "Runs the suite and returns a verdict the planner has to believe.", tile: [5, 9] },
+  { id: "reset", role: "REPO RESET", about: "Restores the workspace to a known state before anything is touched.", tile: [3, 3] },
+  { id: "indexer", role: "LOCALIZER", about: "AST code map plus a lexical index and a Qdrant vector collection, fused into one ranking; parses pytest tracebacks back into candidate locations.", tile: [6, 3] },
+  { id: "planner", role: "PLANNER", about: "Emits typed per-file work packages: file, plan, exact target functions, related files with stated reasons.", tile: [9, 3] },
+  { id: "test_generator", role: "TEST GENERATOR", about: "Writes the pytest file that should have caught the bug.", tile: [12, 3] },
+  { id: "engineer", role: "ENGINEER (PARALLEL)", about: "LangGraph Send fans out one engineer per work package. Returns surgical Edit records, never a whole file.", tile: [15, 3] },
+  { id: "reassembler", role: "REASSEMBLER", about: "Applies each Edit to the syntax tree with libcst, so untouched code stays byte-stable.", tile: [15, 9] },
+  { id: "executor", role: "TEST EXECUTOR", about: "Runs the suite and captures real output.", tile: [12, 9] },
+  { id: "critic", role: "CRITIC", about: "Verdict plus the list of files that actually failed; the routing gate loops back to the planner up to five times.", tile: [9, 9] },
 ];
 
 export const noctisStationMap: Record<string, StationDef> = Object.fromEntries(
@@ -5379,7 +5432,11 @@ export const noctisStationMap: Record<string, StationDef> = Object.fromEntries(
 );
 ```
 
-EDIT-ME (Appendix D.3): the four roles must match AJ's **real** Noctis agents. Spec §12.1: *"Do not invent agents solely for visual effect."* If Noctis has three agents, ship three stations. If it has seven, ship seven and drop the floor rails on the long leg.
+The roster above is the real one (plan A25, transcribed from `agent/graph.py` on 2026-09-15), so this is no longer an EDIT-ME. Two rendering notes for whoever executes this task:
+
+1. **`engineer` genuinely runs N instances at once** (LangGraph `Send`). A single travelling box cannot show that. Render the fan-out as one box per engineer event in flight — `ArtifactBox` already takes a flight ref, so lift it to a small list keyed by step index rather than building a new system. If that grows past ~6 boxes on screen, cap it and say so in a `ponytail:` comment.
+2. `debug_agent` (state telemetry) and `retry_router` are real nodes in the graph but are plumbing, not agents; `retry_router`'s decision is what the critic→planner hop *shows*. Do not give them desks.
+3. Eight desks on the 19×13 map means the north wall row (z=3) has stations at x=3,6,9,12,15 — check each against `blocked` and the `← CORE HUB` door path at (0,6) before committing, and let the Task 3.3 validator catch the rest.
 
 **Props (exact, `pos` is `[x, y, z]` in tile units — every one inside the 19×13 map):**
 
