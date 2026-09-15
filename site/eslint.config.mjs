@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Local throwaway browser probes (gitignored, never shipped, run by hand).
+    "verify-*.mjs",
   ]),
 ]);
 

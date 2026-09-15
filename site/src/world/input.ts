@@ -36,7 +36,11 @@ export function useKeyboard(handlers: {
 }) {
   const keys = useRef<Set<string>>(new Set());
   const h = useRef(handlers);
-  h.current = handlers;
+  // Latest handlers are published after every commit (never during render), and
+  // always before the browser can deliver an input event.
+  useEffect(() => {
+    h.current = handlers;
+  });
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {

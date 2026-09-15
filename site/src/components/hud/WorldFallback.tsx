@@ -4,7 +4,7 @@ export function WorldFallback() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-6 bg-facility-bg px-6 text-center">
       <p className="font-mono text-xs uppercase tracking-widest text-warn">
-        // Facility requires WebGL and a precise pointer
+        {"// Facility requires WebGL and a precise pointer"}
       </p>
       <h1 className="text-3xl font-semibold">The standard facility is open</h1>
       <p className="max-w-md text-facility-muted">

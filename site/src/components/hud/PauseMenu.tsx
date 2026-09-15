@@ -11,7 +11,7 @@ export function PauseMenu() {
     <div className="pointer-events-auto absolute inset-0 flex items-center justify-center bg-facility-bg/80">
       <div className="w-80 rounded-lg border border-facility-border bg-facility-surface p-6">
         <p className="font-mono text-xs uppercase tracking-widest text-facility-muted">
-          // Paused
+          {"// Paused"}
         </p>
         <button
           onClick={() => setPaused(false)}
