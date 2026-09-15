@@ -134,6 +134,7 @@ Written when Phases 3.3 → 7.4 were added. Read this before executing Phase 3; 
 | A14 | `npm run test` exits 1 until the first test file exists | Vitest 5 fails on "no test files found". That is the correct behaviour and Task 0.2's test lands first, so nothing to fix — but an executor hitting red at the end of Task 0.1 should not add `passWithNoTests` to hide it. |
 | A15 | `/world` logs two `404` console errors while Phase 0's pages are unbuilt | Measured in Phase 1: Next prefetches the `PauseMenu` links (`/projects`, `/contact`) that Tasks 0.4–0.6 create. Do **not** add `prefetch={false}` to hide it; build Phase 0 and the noise disappears on its own. |
 | A16 | Phase 1 was executed against a **Phase 0-lite** slice (Task 0.1 + Task 0.3 Step 1 + the body-class half of Step 2) | The hub renderer, HUD and world page consume only the design tokens, the scaffolded fonts, the `@/*` alias and the test runner. The content layer, `(site)` group, Nav/Footer, landing and project pages are still owed by Phase 0 and are *not* needed to walk the hub. Task 0.3 stays unticked below so the next executor completes it for real. |
+| A17 | **AJ.exe recoloured: charcoal suit → light `#e6eaf2`, cyan visor → dark visor + cyan antenna** (Task 1.5). Measured 2026-09-15 | `BODY = "#232b3e"` is the same hex as `facility-border` and sits on room floors from `#1f2b26` to `#2e2a26`: **1.01:1** against the hub floor, i.e. the character was effectively invisible. Worse, the original separation was hue-based, which is exactly what fails colour-blind visitors, and spec §24 forbids the world being an accessibility barrier. Replacement uses only existing §4 tokens, keyed on **lightness**: `#e6eaf2` body (worst case 7.86:1 against any wall, 10.7–12.2:1 against floors), `#0b0e14` visor against the light head (~16.9:1, so the face still reads), with `#f6ad55` pack and `#4fd1c5` antenna (5.1:1 worst case) keeping the brand. Verified on **real rendered pixels**, not by eye: brightest figure pixel `#d9dbdd` vs sampled floor `#090f1c` = **13.79:1** through the browser; the Phase 1 regression gate still passes. |
 
 New decisions AD-15 → AD-18 are in §2 above. Everything else in §0–§4 stands as written.
 
@@ -2517,10 +2518,18 @@ import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 
-// AJ.exe — original voxel humanoid. Charcoal body, cyan visor, amber pack.
-// Deliberately NOT a Steve clone (spec §5).
-const BODY = "#232b3e";
-const VISOR = "#4fd1c5";
+// AJ.exe — original voxel humanoid. Deliberately NOT a Steve clone (spec §5).
+//
+// Readability is a hard requirement, not a taste call (spec §24). Charcoal
+// #232b3e measured 1.01:1 against the hub floor — effectively invisible, and
+// worst against dark rooms. Every colour here is an existing §4 token chosen on
+// LIGHTNESS rather than hue, so the figure survives colour blindness:
+//   BODY   #e6eaf2 (facility-text) 7.9-12.2:1 vs every room floor and wall
+//   ACCENT #4fd1c5 (accent)        5.1:1 worst case, antenna only
+//   VISOR  #0b0e14 (facility-bg)   ~16.9:1 against the BODY, so the face reads
+const BODY = "#e6eaf2"; // light suit, not charcoal
+const VISOR = "#0b0e14";
+const ACCENT = "#4fd1c5";
 const PACK = "#f6ad55";
 
 export function Character({
@@ -2582,7 +2591,7 @@ export function Character({
       </mesh>
       <mesh position={[0, 1.6, 0.22]}>
         <boxGeometry args={[0.34, 0.12, 0.03]} />
-        <meshBasicMaterial color={VISOR} />
+        <meshBasicMaterial color={ACCENT} />
       </mesh>
       <mesh position={[0.14, 1.9, 0]}>
         <boxGeometry args={[0.04, 0.24, 0.04]} />
@@ -2606,6 +2615,8 @@ export function Character({
 git add site/src/world/Character.tsx
 git commit -m "feat: AJ.exe voxel character"
 ```
+
+> **Amended 2026-09-15 (A17):** the colour constants in Task 1.5 are the corrected ones. If you are executing from an older copy, do not restore `BODY = "#232b3e"` — see the amendment log.
 
 ### Task 1.6: Camera rig
 

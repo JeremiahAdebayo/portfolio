@@ -4,10 +4,19 @@ import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 
-// AJ.exe — original voxel humanoid. Charcoal body, cyan visor, amber pack.
-// Deliberately NOT a Steve clone (spec §5).
-const BODY = "#232b3e";
-const VISOR = "#4fd1c5";
+// AJ.exe — original voxel humanoid. Deliberately NOT a Steve clone (spec §5).
+//
+// Readability is a hard requirement, not a taste call (spec §24). The plan's
+// original charcoal BODY was #232b3e — 1.01:1 against the hub floor, i.e.
+// effectively invisible, and worst against dark rooms. Every colour below is an
+// existing plan §4 token chosen on LIGHTNESS rather than hue, so the figure is
+// still distinguishable to colour-blind visitors:
+//   BODY   #e6eaf2 (facility-text) 7.9-12.2:1 vs every room floor and wall
+//   ACCENT #4fd1c5 (accent)        5.1:1 worst case, used on the antenna alone
+//   VISOR  #0b0e14 (facility-bg)   ~16.9:1 against the BODY, so the face reads
+const BODY = "#e6eaf2"; // light suit, not charcoal
+const VISOR = "#0b0e14";
+const ACCENT = "#4fd1c5";
 const PACK = "#f6ad55";
 
 export function Character({
@@ -73,7 +82,7 @@ export function Character({
       </mesh>
       <mesh position={[0.14, 1.9, 0]}>
         <boxGeometry args={[0.04, 0.24, 0.04]} />
-        <meshBasicMaterial color={VISOR} />
+        <meshBasicMaterial color={ACCENT} />
       </mesh>
       {/* fake blob shadow — no real-time shadows (cut list) */}
       <mesh position={[0, 0.01, 0]} rotation={[-Math.PI / 2, 0, 0]}>
