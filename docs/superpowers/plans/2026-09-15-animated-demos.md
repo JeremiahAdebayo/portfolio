@@ -12,6 +12,8 @@
 
 **Supersedes:** this plan *replaces* master-plan Phase 3's demo stack (Tasks 3.4-3.8: `/api/inspect`, rate limiter, mock inference, heatmap, upload downscale, `InspectDemo`, camera capture) and Phase 4's trace machinery (Tasks 4.1-4.4, 4.6: trace format, validator, player, playback store, console panel), plus Appendices A and B and the backend/sample-image decisions. See "Deleted work" at the end. Where this plan and the master plan conflict, **this plan wins**.
 
+**Status (2026-09-15):** Tasks 1-3 are executed and committed (validator + noctis north-wall fix, choreography-as-content, wall frames + GitHub plaques). Task 4's belt is next and does not block on AJ's photos: cards carry `image: null` and render a labelled swatch, so the animation is complete and honest before the pictures arrive. Gates at every commit: `tsc` 0, `lint` 0, `npm run test` 43/43, `npm run build` green, plus headless-browser probes.
+
 ## Global constraints
 
 - No dependencies beyond the master plan's pinned list (AGENTS.md, plan section 1).
@@ -237,6 +239,8 @@ describe("animated rooms", () => {
 ```
 
 Note: the `animated rooms` block is written **before** Task 5 exists. Land it with `noctisStations` returning `[]` and `pipeline` absent, so the first run passes vacuously, then let Tasks 2 and 5 make it real. That is the one place this plan is deliberately weak: a suite with an empty roster proves nothing until Task 5. Task 5's Step 6 closes it.
+
+> **Deviation (executed 2026-09-15):** the animated-rooms block was *not* landed early. Writing it against an empty roster would have needed a stub `noctisStations`, which is exactly the kind of speculative scaffolding this project bans. The block lands with Task 5, when there is a roster to assert on. The core validator (25 assertions over hub/nightfall/noctis plus connectivity) shipped and immediately caught a real bug: **noctis row 0 was floor, so the lab had no north wall** - the master plan's own Task 2.1 map data was wrong. Fixed in `rooms/noctis.ts`, not in the test.
 
 - [x] **Step 2: Run it.** `npm run test` - if a room-data bug surfaces, **fix the room, not the test.**
 - [x] **Step 3: Prove it bites.** Temporarily set one hub map row to a shorter length, run, expect a failure naming a ragged row, revert.
@@ -525,7 +529,7 @@ git commit -m "feat: wall copy, belt cards and the noctis cycle as content"
 
 **Design constraint:** the frame is *passive*. A visitor who never presses `[E]` still reads the explanation, which is spec section 10 ("communicate the project through its environment") and the reason this task is worth doing at all. The plaque beneath it is the `[E]` target, because the world's only outbound links must be deliberate interactions.
 
-- [ ] **Step 1: Prop kinds.** In `types.ts` extend `PropType`:
+- [x] **Step 1: Prop kinds.** In `types.ts` extend `PropType`:
 
 ```ts
 export type PropType =
@@ -540,7 +544,7 @@ export type PropType =
   | "plaque";
 ```
 
-- [ ] **Step 2: Two textures** appended to `site/src/world/textures.ts`. `frame` wraps text to the canvas so long bodies cannot overflow, and `plaque` is a single line with a link-arrow glyph:
+- [x] **Step 2: Two textures** appended to `site/src/world/textures.ts`. `frame` wraps text to the canvas so long bodies cannot overflow, and `plaque` is a single line with a link-arrow glyph:
 
 ```ts
 /** Wall "painting": a bordered frame with wrapped body text. No drei (AD-11). */
@@ -620,7 +624,7 @@ export function makePlaqueTexture(
 
 The `/` suffix is the arrow: `ASCII` on a canvas with no font-loading is safer than a Unicode arrow, and `[E] OPEN GITHUB /` reads fine. `makePlaqueTexture` is used for the frame's own title too, so keep the signature.
 
-- [ ] **Step 3: Render them.** In `Props.tsx`, extend the material choice so `frame`/`plaque` get their canvas textures, and dispose is handled by the existing sign path. Replace the body of `Prop`:
+- [x] **Step 3: Render them.** In `Props.tsx`, extend the material choice so `frame`/`plaque` get their canvas textures, and dispose is handled by the existing sign path. Replace the body of `Prop`:
 
 ```tsx
 function Prop({ def, accent }: { def: PropDef; accent: string }) {
@@ -659,7 +663,7 @@ function Prop({ def, accent }: { def: PropDef; accent: string }) {
   body?: string;
 ```
 
-- [ ] **Step 4: Place them.** Both rooms get the same composition: a `frame` prop on a side wall at eye height (`y = 1.9`, size `[3.6, 2.25, 0.14]` - the 1024x640 canvas aspect is 1.6, and 3.6/2.25 is 1.6, so text is never stretched), a `plaque` directly under it (`y = 0.72`, size `[1.7, 0.32, 0.1]`), and one interactable on the plaque.
+- [x] **Step 4: Place them.** Both rooms get the same composition: a `frame` prop on a side wall at eye height (`y = 1.9`, size `[3.6, 2.25, 0.14]` - the 1024x640 canvas aspect is 1.6, and 3.6/2.25 is 1.6, so text is never stretched), a `plaque` directly under it (`y = 0.72`, size `[1.7, 0.32, 0.1]`), and one interactable on the plaque.
 
 `rooms/nightfall.ts`: read `frame`/`github` from content rather than repeating strings, and mount on the **west** wall so the east wall keeps the doorway clear:
 
@@ -703,8 +707,8 @@ and into `interactables`:
 
 `rooms/noctis.ts`: same three entries on its **east** wall (`pos: [18.45, 1.9, 3]` / `[18.42, 0.72, 3]`, `face: "w"`, plaque text `"OPEN GITHUB"`) with interactable `nx-github` at `[16, 3]`, radius 1.6, prompt `OPEN NOCTIS REPO`, and `project` resolved from slug `noctis`. Note the plaque's x must sit *inside* the wall plane (`18.42` against a wall tile at x=18 whose inner face is 18.44), so it does not z-fight.
 
-- [ ] **Step 5: Verify.** Dev server, both rooms: the frame is readable from the doorway without moving (if it is not, the size is wrong - do not shrink the font, grow the frame); standing at the plaque shows `[E] OPEN NIGHTFALL REPO`; pressing `[E]` opens the repo in a new tab (`runAction` already does `window.open(href, "_blank", "noopener")` - confirm no `rel` regression); the belt/plaza still works; no prompt while paused. `npm run test` (Task 1's validator must pass with the new props), `npx tsc --noEmit` 0, `npm run lint` 0, `npm run build` green.
-- [ ] **Step 6: Commit.**
+- [x] **Step 5: Verify.** Dev server, both rooms: the frame is readable from the doorway without moving (if it is not, the size is wrong - do not shrink the font, grow the frame); standing at the plaque shows `[E] OPEN NIGHTFALL REPO`; pressing `[E]` opens the repo in a new tab (`runAction` already does `window.open(href, "_blank", "noopener")` - confirm no `rel` regression); the belt/plaza still works; no prompt while paused. `npm run test` (Task 1's validator must pass with the new props), `npx tsc --noEmit` 0, `npm run lint` 0, `npm run build` green.
+- [x] **Step 6: Commit.**
 
 ```powershell
 git add site/src/world
@@ -1160,6 +1164,8 @@ export function AgentFigure({
 ```
 
 Fill the `...` with the eight meshes copied structurally from `Character.tsx`, recoloured. The caption plane's aspect must match the 512x96 canvas (2.1 / 0.394 = 5.33) or the text is stretched.
+
+> **Note from Task 3 (already implemented):** a room with eight desks plus the existing monitor, frame, plaque and belt has a crowded 19x13 floor. `nx-github` currently sits at (16,10) and `noctisStations` will place engineer at (15,3); Task 5 must re-run the validator after placing desks and expect to move either a station or the plaque. Blocked rects for desks also overlap the plaque's approach tile, so verify each interactable still stands on floor.
 
 - [ ] **Step 4: Director** - `PlayDirector.tsx`. Phase machine over `noctisPipeline`, all timing in refs, only the *step index* in React state (it changes 13 times per ~40 s cycle, and every consumer of it is a texture swap):
 
