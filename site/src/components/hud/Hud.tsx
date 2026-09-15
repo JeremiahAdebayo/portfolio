@@ -4,6 +4,7 @@ import { useWorldStore } from "@/world/store";
 import { PromptBar } from "./PromptBar";
 import { PauseMenu } from "./PauseMenu";
 import { TransitionOverlay } from "./TransitionOverlay";
+import { PanelHost } from "./PanelHost";
 import type { RoomDef } from "@/world/types";
 
 export function Hud({ room }: { room: RoomDef }) {
@@ -24,6 +25,7 @@ export function Hud({ room }: { room: RoomDef }) {
       </div>
       {prompt && <PromptBar prompt={prompt} />}
       <PauseMenu />
+      <PanelHost />
       <TransitionOverlay />
     </div>
   );
