@@ -86,18 +86,7 @@ export const hub: RoomDef = {
       pos: [9, 6],
       radius: 1.6,
       prompt: "ACCESS TERMINAL",
-    },
-    {
-      id: "door-n",
-      pos: [9, 1],
-      radius: 1.6,
-      prompt: "VISION LAB — UNDER CONSTRUCTION",
-    },
-    {
-      id: "door-e",
-      pos: [17, 7],
-      radius: 1.6,
-      prompt: "AGENT LAB — UNDER CONSTRUCTION",
+      action: { type: "panel", panel: { kind: "about" } },
     },
     {
       id: "door-w",
@@ -112,5 +101,8 @@ export const hub: RoomDef = {
       prompt: "ABOUT — UNDER CONSTRUCTION",
     },
   ],
-  doors: {}, // wired in Phase 2+
+  doors: {
+    "9,0": { targetRoom: "nightfall", spawn: { x: 9, z: 11 }, facing: "n" },
+    "18,7": { targetRoom: "noctis", spawn: { x: 1, z: 6 }, facing: "e" },
+  },
 };
