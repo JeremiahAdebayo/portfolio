@@ -135,6 +135,12 @@ Written when Phases 3.3 → 7.4 were added. Read this before executing Phase 3; 
 | A15 | `/world` logs two `404` console errors while Phase 0's pages are unbuilt | Measured in Phase 1: Next prefetches the `PauseMenu` links (`/projects`, `/contact`) that Tasks 0.4–0.6 create. Do **not** add `prefetch={false}` to hide it; build Phase 0 and the noise disappears on its own. |
 | A16 | Phase 1 was executed against a **Phase 0-lite** slice (Task 0.1 + Task 0.3 Step 1 + the body-class half of Step 2) | The hub renderer, HUD and world page consume only the design tokens, the scaffolded fonts, the `@/*` alias and the test runner. The content layer, `(site)` group, Nav/Footer, landing and project pages are still owed by Phase 0 and are *not* needed to walk the hub. Task 0.3 stays unticked below so the next executor completes it for real. |
 | A17 | **AJ.exe recoloured: charcoal suit → light `#e6eaf2`, cyan visor → dark visor + cyan antenna** (Task 1.5). Measured 2026-09-15 | `BODY = "#232b3e"` is the same hex as `facility-border` and sits on room floors from `#1f2b26` to `#2e2a26`: **1.01:1** against the hub floor, i.e. the character was effectively invisible. Worse, the original separation was hue-based, which is exactly what fails colour-blind visitors, and spec §24 forbids the world being an accessibility barrier. Replacement uses only existing §4 tokens, keyed on **lightness**: `#e6eaf2` body (worst case 7.86:1 against any wall, 10.7–12.2:1 against floors), `#0b0e14` visor against the light head (~16.9:1, so the face still reads), with `#f6ad55` pack and `#4fd1c5` antenna (5.1:1 worst case) keeping the brand. Verified on **real rendered pixels**, not by eye: brightest figure pixel `#d9dbdd` vs sampled floor `#090f1c` = **13.79:1** through the browser; the Phase 1 regression gate still passes. |
+| A18 | `npm run lint` is added to the standing verify gate for every task (Task 0.1 Step 9, and it belongs in AGENTS.md Commands as a gate, not just a command) | Phase 1 was reported green on `tsc` + `build` + `test` and I never ran the linter; `npm run lint` then reported 18 errors across Phase 0/1 code, including two React-hooks violations in code copied verbatim from the plan. Verification must include the linter, or "green" is only three quarters of the truth. |
+| A19 | The design-system label pattern must be a JSX **string expression**, not a text node: write `{"// Projects"}`, or a template literal when interpolating (Task 0.3-0.7 updated, section 4 noted) | The plan's copy-pasteable `// Label` text nodes trip `react/jsx-no-comment-textnodes`, which eslint-config-next enables. Every page and panel in the plan uses that pattern, so this was systematic, not a one-off: 13 files affected. Rendered output is identical and no rule is disabled. |
+| A20 | The `/world` capability guard is restructured (Task 1.1): detection moved from `useState` + `useEffect` in `app/world/page.tsx` into `src/world/WorldGate.tsx`, loaded through `dynamic(..., { ssr: false })` and evaluated during render | `react-hooks/set-state-in-effect` correctly flagged the plan's pattern. The effect existed only to avoid touching `window` during server render; a component that is never server-rendered does not need it. Same behaviour, one less state, one less effect, and the `ssr: false` boundary is what makes render-time detection legal. Measured: canvas attaches 1598 ms after navigation at 900x600. |
+| A21 | `useKeyboard` publishes its latest handlers in an effect instead of during render (Task 1.7) | `h.current = handlers` in the render body trips `react-hooks/refs`, and it is genuinely wrong under React 19 concurrency: a discarded render would mutate the ref. Effects flush after commit, before any input event can arrive, so the behaviour is identical. |
+| A22 | Task 0.7 additions: each `opengraph-image.tsx` text block is one child (`{`${site.owner.name} // RESEARCH FACILITY`}`), and the root layout sets `metadataBase` from `NEXT_PUBLIC_SITE_URL` | As written, the OG image div held two children (an expression plus text) and Satori refuses that without `display: flex`: the build failed while prerendering `/opengraph-image`. Without `metadataBase` every build warns and social previews get relative image URLs. |
+| A23 | If a route file is deleted or renamed, remove `.next/dev` and `.next/types` before trusting `npx tsc --noEmit` | Next generates typed-route validators into `.next/(dev/)types`, and tsconfig includes them. A stale validator references the deleted `src/app/page.tsx` and reports `TS2307` plus a missing `LayoutProps` global, which looks like an app bug and is not one. This is why the plan's Task 0.3 Step 6 (delete the scaffold page) needs a clean cache before the next type check. |
 
 New decisions AD-15 → AD-18 are in §2 above. Everything else in §0–§4 stands as written.
 
@@ -325,10 +331,10 @@ Restrained on purpose (spec §18: "designed rather than decorated"). No gradient
 
 **Exit gate (all must be true before starting Phase 1):**
 
-- [ ] `npm run build` and `npm run test` green in `site/`
+- [x] `npm run build` and `npm run test` green in `site/`
 - [ ] Staging URL deployed on Vercel; every route returns 200
 - [ ] Landing Lighthouse Performance ≥ 90
-- [ ] Editing `src/content/projects.ts` changes the site (proves AD-01)
+- [x] Editing `src/content/projects.ts` changes the site (proves AD-01)
 
 ### Task 0.1: Scaffold + tooling + repo rules
 
@@ -339,9 +345,9 @@ Restrained on purpose (spec §18: "designed rather than decorated"). No gradient
 **Interfaces:**
 - Produces: runnable Next.js app at `site/`, test runner (`npm run test`), type check (`npx tsc --noEmit`), git repo at root.
 
-- [ ] **Step 0: Pre-flight.** Run `node -v`. Expected: `v22.12` or higher (Next 16 needs ≥20.9; Vitest 5 needs ≥22.12). If lower, stop and report — do not proceed.
+- [x] **Step 0: Pre-flight.** Run `node -v`. Expected: `v22.12` or higher (Next 16 needs ≥20.9; Vitest 5 needs ≥22.12). If lower, stop and report — do not proceed.
 
-- [ ] **Step 1: Scaffold.** From repo root (`C:\Users\Jeremiah\scripts\portfolio`), run:
+- [x] **Step 1: Scaffold.** From repo root (`C:\Users\Jeremiah\scripts\portfolio`), run:
 
 ```powershell
 npx create-next-app@latest site --typescript --tailwind --eslint --app --src-dir --use-npm --disable-git --yes
@@ -349,7 +355,7 @@ npx create-next-app@latest site --typescript --tailwind --eslint --app --src-dir
 
 Expected: `site/` created, dependencies installed, no prompts. If prompted despite `--yes`, answer: TypeScript / ESLint / Tailwind / src dir / App Router / default import alias / AGENTS.md yes / React Compiler **no**.
 
-- [ ] **Step 2: Pin React to 19.2.x (mandatory).** `@react-three/fiber@9.7.0` peers `react >=19 <19.3`; the scaffold installs 19.3.x which violates it. From `site/`:
+- [x] **Step 2: Pin React to 19.2.x (mandatory).** `@react-three/fiber@9.7.0` peers `react >=19 <19.3`; the scaffold installs 19.3.x which violates it. From `site/`:
 
 ```powershell
 npm install react@~19.2.0 react-dom@~19.2.0
@@ -357,7 +363,7 @@ npm install react@~19.2.0 react-dom@~19.2.0
 
 Expected: installs cleanly, `package.json` shows `"react": "~19.2.0"`.
 
-- [ ] **Step 3: Install world + test dependencies.** From `site/`:
+- [x] **Step 3: Install world + test dependencies.** From `site/`:
 
 ```powershell
 npm install three@0.186.0 @react-three/fiber@9.7.0 zustand@5.0.15
@@ -365,7 +371,7 @@ npm install -D @types/three vitest @playwright/test
 npx playwright install chromium
 ```
 
-- [ ] **Step 4: Create `site/vitest.config.ts`** exactly:
+- [x] **Step 4: Create `site/vitest.config.ts`** exactly:
 
 ```ts
 import { defineConfig } from "vitest/config";
@@ -384,7 +390,7 @@ export default defineConfig({
 });
 ```
 
-- [ ] **Step 5: Add scripts to `site/package.json`.** The `scripts` block must contain exactly these entries (keep any scaffold entries not listed here, e.g. `lint`):
+- [x] **Step 5: Add scripts to `site/package.json`.** The `scripts` block must contain exactly these entries (keep any scaffold entries not listed here, e.g. `lint`):
 
 ```json
 "scripts": {
@@ -398,7 +404,7 @@ export default defineConfig({
 }
 ```
 
-- [ ] **Step 6: Create root `.gitignore`:**
+- [x] **Step 6: Create root `.gitignore`:**
 
 ```text
 node_modules/
@@ -413,7 +419,7 @@ playwright-report/
 .DS_Store
 ```
 
-- [ ] **Step 7: Create root `AGENTS.md`:**
+- [x] **Step 7: Create root `AGENTS.md`:**
 
 ```markdown
 # AGENTS.md
@@ -442,7 +448,7 @@ playwright-report/
 
 Then edit the scaffolded `site/AGENTS.md` to contain a single line: `See ../AGENTS.md — repo-wide rules apply, plus the implementation plan at ../docs/superpowers/plans/2026-09-14-portfolio-revised-plan.md.`
 
-- [ ] **Step 8: Create `site/.env.example`:**
+- [x] **Step 8: Create `site/.env.example`:**
 
 ```text
 # Nightfall inference backend. Leave NIGHTFALL_API_URL unset to use built-in mock mode.
@@ -452,7 +458,7 @@ NIGHTFALL_MOCK=1
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ```
 
-- [ ] **Step 9: Verify.** From `site/`:
+- [x] **Step 9: Verify.** From `site/`:
 
 ```powershell
 npm run build
@@ -462,7 +468,7 @@ npx vitest --version
 
 Expected: build succeeds; tsc reports nothing; vitest prints `v5.x.x`.
 
-- [ ] **Step 10: Init git and commit.** From repo root:
+- [x] **Step 10: Init git and commit.** From repo root:
 
 ```powershell
 git init
@@ -481,7 +487,7 @@ git commit -m "chore: scaffold Next.js 16 site with pinned world deps"
 
 **EDIT-ME rule:** `EDIT-ME` markers are the **only** placeholders allowed in this repo. They mark facts only AJ can supply (real metrics, URLs, bio) and are catalogued in Appendix D. Structure, fields, and all other values are final. The Phase 6 launch gate fails if any `EDIT-ME` remains.
 
-- [ ] **Step 1: Write the failing test** — `site/src/content/validate.test.ts`:
+- [x] **Step 1: Write the failing test** — `site/src/content/validate.test.ts`:
 
 ```ts
 import { describe, expect, it } from "vitest";
@@ -507,7 +513,7 @@ describe("validateContent", () => {
 });
 ```
 
-- [ ] **Step 2: Run it to verify it fails.** From `site/`:
+- [x] **Step 2: Run it to verify it fails.** From `site/`:
 
 ```powershell
 npm run test
@@ -515,7 +521,7 @@ npm run test
 
 Expected: FAIL — cannot resolve `./validate` / `./site` / `./projects`.
 
-- [ ] **Step 3: Write `site/src/content/types.ts`:**
+- [x] **Step 3: Write `site/src/content/types.ts`:**
 
 ```ts
 export interface Link {
@@ -576,7 +582,7 @@ export interface SiteContent {
 }
 ```
 
-- [ ] **Step 4: Write `site/src/content/validate.ts`:**
+- [x] **Step 4: Write `site/src/content/validate.ts`:**
 
 ```ts
 import type { Project, SiteContent } from "./types";
@@ -634,7 +640,7 @@ export function validateContent(content: SiteContent): string[] {
 }
 ```
 
-- [ ] **Step 5: Write `site/src/content/site.ts`:**
+- [x] **Step 5: Write `site/src/content/site.ts`:**
 
 ```ts
 import type { SiteContent } from "./types";
@@ -671,7 +677,7 @@ export const site: SiteContent = {
 };
 ```
 
-- [ ] **Step 6: Write `site/src/content/projects.ts`:**
+- [x] **Step 6: Write `site/src/content/projects.ts`:**
 
 ```ts
 import type { Project } from "./types";
@@ -731,9 +737,9 @@ export const projects: Project[] = [
 ];
 ```
 
-- [ ] **Step 7: Run the test to verify it passes.** From `site/`: `npm run test`. Expected: 2 passed.
+- [x] **Step 7: Run the test to verify it passes.** From `site/`: `npm run test`. Expected: 2 passed.
 
-- [ ] **Step 8: Commit.**
+- [x] **Step 8: Commit.**
 
 ```powershell
 git add site/src/content
@@ -752,7 +758,7 @@ git commit -m "feat: typed content layer with validation"
 **Interfaces:**
 - Produces: Tailwind tokens as utilities (`bg-facility-bg`, `text-facility-muted`, `border-facility-border`, `text-accent`, `bg-anomaly`, `text-warn`, `text-ok`, `font-mono`), `Nav`, `Footer`. All later UI uses only these.
 
-- [ ] **Step 1: Replace `site/src/app/globals.css`** (keep the `@import "tailwindcss";` line, replace the rest):
+- [x] **Step 1: Replace `site/src/app/globals.css`** (keep the `@import "tailwindcss";` line, replace the rest):
 
 ```css
 @import "tailwindcss";
@@ -786,7 +792,7 @@ body {
 }
 ```
 
-- [ ] **Step 2: Replace `site/src/app/layout.tsx`:**
+- [x] **Step 2: Replace `site/src/app/layout.tsx`:**
 
 ```tsx
 import type { Metadata } from "next";
@@ -820,7 +826,7 @@ export default function RootLayout({
 }
 ```
 
-- [ ] **Step 3: Create `site/src/app/(site)/layout.tsx`:**
+- [x] **Step 3: Create `site/src/app/(site)/layout.tsx`:**
 
 ```tsx
 import { Nav } from "@/components/site/Nav";
@@ -841,7 +847,7 @@ export default function SiteLayout({
 }
 ```
 
-- [ ] **Step 4: Create `site/src/components/site/Nav.tsx`:**
+- [x] **Step 4: Create `site/src/components/site/Nav.tsx`:**
 
 ```tsx
 import Link from "next/link";
@@ -884,7 +890,7 @@ export function Nav() {
 }
 ```
 
-- [ ] **Step 5: Create `site/src/components/site/Footer.tsx`:**
+- [x] **Step 5: Create `site/src/components/site/Footer.tsx`:**
 
 ```tsx
 import { site } from "@/content/site";
@@ -922,15 +928,15 @@ export function Footer() {
 }
 ```
 
-- [ ] **Step 6: Delete the scaffolded `site/src/app/page.tsx`** (it moves to `(site)/page.tsx` in Task 0.4):
+- [x] **Step 6: Delete the scaffolded `site/src/app/page.tsx`** (it moves to `(site)/page.tsx` in Task 0.4):
 
 ```powershell
 Remove-Item site\src\app\page.tsx
 ```
 
-- [ ] **Step 7: Verify.** From `site/`: `npm run build`. Expected: build succeeds (Next may warn about no root page — that is fine until Task 0.4).
+- [x] **Step 7: Verify.** From `site/`: `npm run build`. Expected: build succeeds (Next may warn about no root page — that is fine until Task 0.4).
 
-- [ ] **Step 8: Commit.**
+- [x] **Step 8: Commit.**
 
 ```powershell
 git add -A
@@ -946,7 +952,7 @@ git commit -m "feat: design tokens, root layout, nav and footer"
 - Consumes: `site`, `projects` from `@/content/*`.
 - Produces: `ProjectCard` (reused on `/projects`).
 
-- [ ] **Step 1: Create `site/src/components/site/ProjectCard.tsx`:**
+- [x] **Step 1: Create `site/src/components/site/ProjectCard.tsx`:**
 
 ```tsx
 import Link from "next/link";
@@ -978,7 +984,7 @@ export function ProjectCard({ project }: { project: Project }) {
 }
 ```
 
-- [ ] **Step 2: Create `site/src/app/(site)/page.tsx`:**
+- [x] **Step 2: Create `site/src/app/(site)/page.tsx`:**
 
 ```tsx
 import Link from "next/link";
@@ -1042,9 +1048,9 @@ export default function LandingPage() {
 }
 ```
 
-- [ ] **Step 3: Verify.** From `site/`: `npm run dev`, open `http://localhost:3000`. Expected: dark page, name/title/tagline, four buttons, both project cards, Nav + Footer. Then `npm run build` — succeeds.
+- [x] **Step 3: Verify.** From `site/`: `npm run dev`, open `http://localhost:3000`. Expected: dark page, name/title/tagline, four buttons, both project cards, Nav + Footer. Then `npm run build` — succeeds.
 
-- [ ] **Step 4: Commit.**
+- [x] **Step 4: Commit.**
 
 ```powershell
 git add -A
@@ -1059,7 +1065,7 @@ git commit -m "feat: landing page and project cards"
 **Interfaces:**
 - Produces: `ProjectSections({ project }: { project: Project })` — the shared body used by BOTH the standard project page and the world's project panel (Phase 2). Do not inline its sections anywhere.
 
-- [ ] **Step 1: Create `site/src/app/(site)/projects/page.tsx`:**
+- [x] **Step 1: Create `site/src/app/(site)/projects/page.tsx`:**
 
 ```tsx
 import type { Metadata } from "next";
@@ -1085,7 +1091,7 @@ export default function ProjectsPage() {
 }
 ```
 
-- [ ] **Step 2: Create `site/src/components/project/ProjectSections.tsx`:**
+- [x] **Step 2: Create `site/src/components/project/ProjectSections.tsx`:**
 
 ```tsx
 import type { Project } from "@/content/types";
@@ -1170,7 +1176,7 @@ export function ProjectSections({ project }: { project: Project }) {
 }
 ```
 
-- [ ] **Step 3: Create `site/src/app/(site)/projects/[slug]/page.tsx`:**
+- [x] **Step 3: Create `site/src/app/(site)/projects/[slug]/page.tsx`:**
 
 ```tsx
 import type { Metadata } from "next";
@@ -1231,9 +1237,9 @@ export default async function ProjectPage({
 }
 ```
 
-- [ ] **Step 4: Verify.** Dev server: `/projects` lists both; `/projects/nightfall` shows all sections; `/projects/does-not-exist` → 404 page. `npm run build` succeeds.
+- [x] **Step 4: Verify.** Dev server: `/projects` lists both; `/projects/nightfall` shows all sections; `/projects/does-not-exist` → 404 page. `npm run build` succeeds.
 
-- [ ] **Step 5: Commit.**
+- [x] **Step 5: Commit.**
 
 ```powershell
 git add -A
@@ -1245,7 +1251,7 @@ git commit -m "feat: projects index and shared project sections"
 **Files:**
 - Create: `site/src/app/(site)/about/page.tsx`, `site/src/app/(site)/research/page.tsx`, `site/src/app/(site)/resume/page.tsx`, `site/src/app/(site)/contact/page.tsx`
 
-- [ ] **Step 1: `about/page.tsx`:**
+- [x] **Step 1: `about/page.tsx`:**
 
 ```tsx
 import type { Metadata } from "next";
@@ -1288,7 +1294,7 @@ export default function AboutPage() {
 }
 ```
 
-- [ ] **Step 2: `research/page.tsx`:**
+- [x] **Step 2: `research/page.tsx`:**
 
 ```tsx
 import type { Metadata } from "next";
@@ -1337,7 +1343,7 @@ export default function ResearchPage() {
 }
 ```
 
-- [ ] **Step 3: `resume/page.tsx`:**
+- [x] **Step 3: `resume/page.tsx`:**
 
 ```tsx
 import type { Metadata } from "next";
@@ -1379,7 +1385,7 @@ export default function ResumePage() {
 }
 ```
 
-- [ ] **Step 4: `contact/page.tsx`:**
+- [x] **Step 4: `contact/page.tsx`:**
 
 ```tsx
 import type { Metadata } from "next";
@@ -1435,9 +1441,9 @@ export default function ContactPage() {
 }
 ```
 
-- [ ] **Step 5: Verify.** Dev server: all four pages render from content data. `npm run build` succeeds.
+- [x] **Step 5: Verify.** Dev server: all four pages render from content data. `npm run build` succeeds.
 
-- [ ] **Step 6: Commit.**
+- [x] **Step 6: Commit.**
 
 ```powershell
 git add -A
@@ -1449,7 +1455,7 @@ git commit -m "feat: about, research, resume, contact pages"
 **Files:**
 - Create: `site/src/app/sitemap.ts`, `site/src/app/robots.ts`, `site/src/app/opengraph-image.tsx`, `site/src/app/error.tsx`, `site/src/app/not-found.tsx`
 
-- [ ] **Step 1: `sitemap.ts`:**
+- [x] **Step 1: `sitemap.ts`:**
 
 ```ts
 import type { MetadataRoute } from "next";
@@ -1474,7 +1480,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
 }
 ```
 
-- [ ] **Step 2: `robots.ts`:**
+- [x] **Step 2: `robots.ts`:**
 
 ```ts
 import type { MetadataRoute } from "next";
@@ -1487,7 +1493,7 @@ export default function robots(): MetadataRoute.Robots {
 }
 ```
 
-- [ ] **Step 3: `opengraph-image.tsx`** (uses `next/og`, built into Next — no new dependency):
+- [x] **Step 3: `opengraph-image.tsx`** (uses `next/og`, built into Next — no new dependency):
 
 ```tsx
 import { ImageResponse } from "next/og";
@@ -1527,7 +1533,7 @@ export default function OpengraphImage() {
 }
 ```
 
-- [ ] **Step 4: `error.tsx`:**
+- [x] **Step 4: `error.tsx`:**
 
 ```tsx
 "use client";
@@ -1557,7 +1563,7 @@ export default function ErrorPage({
 }
 ```
 
-- [ ] **Step 5: `not-found.tsx`:**
+- [x] **Step 5: `not-found.tsx`:**
 
 ```tsx
 import Link from "next/link";
@@ -1582,9 +1588,9 @@ export default function NotFound() {
 }
 ```
 
-- [ ] **Step 6: Verify.** `npm run build` succeeds; `/sitemap.xml` and `/robots.txt` return XML/txt in dev; visiting a bad URL shows the 404 page.
+- [x] **Step 6: Verify.** `npm run build` succeeds; `/sitemap.xml` and `/robots.txt` return XML/txt in dev; visiting a bad URL shows the 404 page.
 
-- [ ] **Step 7: Commit.**
+- [x] **Step 7: Commit.**
 
 ```powershell
 git add -A
@@ -1623,6 +1629,30 @@ git push -u origin main
 
 ---
 
+## Phase 0 execution record (2026-09-15)
+
+Executed on `phase/1-world-prototype` after Phase 1, in the plan's task order. The
+plan's Task 0.1/0.2 code landed as written; Tasks 0.3-0.7 needed the corrections
+recorded as A18-A23.
+
+| Check | Command | Result |
+|---|---|---|
+| Types | `npx tsc --noEmit` | exit 0 (after clearing stale `.next/dev` + `.next/types`, A23) |
+| Lint | `npm run lint` | exit 0 (was 18 errors: 13x A19, plus A20/A21; probes ignored, A18) |
+| Unit tests | `npm run test` | 12 passed / 4 files (content validator 2, collision 5, input 3, interaction 2) |
+| Build | `npm run build` | green, 13 routes: `/`, `/projects`, `/projects/nightfall`, `/projects/noctis`, `/research`, `/about`, `/resume`, `/contact`, `/world`, `/sitemap.xml`, `/robots.txt`, `/opengraph-image`, `/_not-found` |
+| Content drives the site (AD-01) | every page renders `site.owner.*`, `site.research`, `site.timeline` and `projects` | the h1s and copy that appeared are the `EDIT-ME` strings from `src/content/`, i.e. content is the only source |
+| World unharmed by the gate refactor | headless probe: canvas attaches 1598 ms, 900x600, HUD reads CORE MAIN HUB, `[E] ACCESS TERMINAL` on walking north | pass |
+| Guard still degrades correctly | Pixel-7-like context: fallback panel, zero canvas; `?force=1` boots the canvas | pass |
+| Unknown room | `?room=nonsense` and `?room=nightfall` (room not registered until Phase 2) both stay in the hub | pass |
+| A15 resolved | `/projects` and `/contact` now exist, so the PauseMenu prefetch no longer logs 404s; a full browse of the world plus all 8 routes produced zero console errors | pass |
+
+Still open in Phase 0: **Task 0.8** (Vercel staging - needs AJ's GitHub and Vercel
+accounts), the two exit-gate boxes that depend on it (staging URL, deployed
+Lighthouse), and every `EDIT-ME` in `src/content/` (Appendix D.2). Phase 1's only
+open item is unchanged: 60 fps on real integrated graphics.
+
+---
 # Phase 1 — World Prototype: the hub room
 
 **Goal:** A single explorable room that already feels good to walk around in (spec Phase 1: "Walking around should already feel good"). Character, camera, collision, HUD, interaction prompts, pause menu. No project integrations.
