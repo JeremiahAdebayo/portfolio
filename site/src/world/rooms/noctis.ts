@@ -15,7 +15,10 @@ export const noctis: RoomDef = {
     trim: "#6b9c8a",
   },
   map: [
-    "#.................#",
+    // Row 0 is solid: the master plan's Task 2.1 map left the north edge open, so
+    // the room had no north wall and the visitor could stand in the void. Caught by
+    // the Task 1 room validator on its first run. The door is on the west (row 6).
+    "###################",
     "#.................#",
     "#.................#",
     "#.................#",
