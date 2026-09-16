@@ -96,7 +96,6 @@ export interface SiteContent {
     name: string;
     title: string;
     tagline: string;
-    location: string;
     email: string;
     github: string;
     linkedin: string;

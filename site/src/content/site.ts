@@ -13,7 +13,6 @@ export const site: SiteContent = {
     title: "Machine Learning Engineer",
     tagline:
       "I'm AJ. I build ML systems from scratch and ship them, on the path toward founding something of my own.",
-    location: "EDIT-ME: City, Country",
     email: "jrmhadebayo@gmail.com",
     github: "https://github.com/JeremiahAdebayo",
     linkedin: "https://linkedin.com/in/jadebayo24",
@@ -54,12 +53,29 @@ export const site: SiteContent = {
       links: [],
     },
   ],
+  /**
+   * Transcribed from AJ's resume (2026-09-16). There is deliberately no
+   * `owner.location`: AJ asked for it to be left out, so the field is gone
+   * from the schema rather than left as a placeholder nobody will fill.
+   */
   timeline: [
     {
-      period: "EDIT-ME: 2023–now",
-      title: "EDIT-ME: Role",
-      org: "EDIT-ME: Company",
-      note: "EDIT-ME: one-line impact",
+      period: "March 2026 – August 2026",
+      title: "Software Engineering Intern",
+      org: "UniK Connect",
+      note: "PHP backend for an SME inventory system: auth flows, database work, and the deployment and networking it runs on.",
+    },
+    {
+      period: "August 2025 – Present",
+      title: "Research & Data Analyst (Volunteer)",
+      org: "OpenGov Africa",
+      note: "Led data collection and pandas analysis of Freedom of Information law implementation across African countries.",
+    },
+    {
+      period: "Expected 2027",
+      title: "B.Sc. Information Technology",
+      org: "University of Ilorin",
+      note: "Final year.",
     },
   ],
 };

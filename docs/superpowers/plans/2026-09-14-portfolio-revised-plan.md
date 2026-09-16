@@ -149,6 +149,10 @@ Written when Phases 3.3 → 7.4 were added. Read this before executing Phase 3; 
 | A29 | In-world outbound links use a programmatic anchor click, not `window.open` (Task 1.7's `runAction`) | Measured 2026-09-15: `window.open(url, "_blank", "noopener")` silently does nothing in headless Chromium when a popup opened moments earlier (popup cooldown), while a `target="_blank"` anchor always opens. The feature string looked like the culprit until the control was re-run with one mechanism per fresh context. A GitHub link that nothing happens when you press is worse than no link, so the world now uses `rel="noopener noreferrer"` on a real anchor - same protection, reliable behaviour. |
 | A30 | Text props (`sign`, `frame`, `plaque`) dispose their `CanvasTexture` on unmount (Task 1.4's `Props.tsx`) | The plan's sign code created a texture in `useMemo` and never disposed it, so every hub/lab switch leaked GPU textures - invisible in dev, cumulative in real sessions, and directly at odds with the plan's texture budget. One `useEffect` cleanup covers all text prop kinds. |
 
+| A31 | `SiteContent.owner.location` is **deleted**, not filled (schema, content, and both renderers) | AJ's call, 2026-09-16: no location on the site. It was the register's most visible `EDIT-ME` - it rendered on `/about` and in the world's About panel - and "fill it later" had no owner and no date. Deleting the field is the honest fix: a placeholder nobody intends to fill is worse than a fact that does not exist, and `validateContent` only checks keys that are present, so no validator change was needed. |
+| A32 | `public/resume.pdf` is shipped (18 KB); the "BROKEN NOW" register row is closed | `/resume.pdf` 404'd from `/resume`, the landing button and the world's resume pickup. AJ supplied the PDF on 2026-09-16, so it now sits at `site/public/resume.pdf` and the URL returns 200 `application/pdf`. It is a plain committed asset - nothing generates it at build time. |
+| A33 | The timeline is transcribed from AJ's resume, and **CGPA is deliberately not shown** | AJ asked for the CGPA to stay off the site even though his resume lists it. Timeline rows come from the resume's EXPERIENCE and EDUCATION sections and claim only what the resume claims: UniK Connect (March-August 2026), OpenGov Africa (August 2025-present), B.Sc. Information Technology at the University of Ilorin (expected 2027). The study year reads "Final year" rather than "fourth year" because "final year" is what a reader can act on without knowing the programme's length. NOTE: the shipped PDF still says "Third Year" - AJ should regenerate it. |
+
 New decisions AD-15 → AD-18 are in §2 above. Everything else in §0–§4 stands as written.
 
 ---
@@ -6925,7 +6929,7 @@ Open the production URL in a fresh profile, logged out. From a Google search res
 
 ## D.2 The catalogue
 
-Refreshed 2026-09-15 (A24, A28). The plan originally listed these as unknowns;
+Refreshed 2026-09-15 (A24, A28) and 2026-09-16 (A31-A33). The plan originally listed these as unknowns;
 the ones marked DONE came from AJ or from the repositories themselves.
 
 | Status | Where | Marker | Note |
@@ -6937,8 +6941,8 @@ the ones marked DONE came from AJ or from the repositories themselves.
 | DONE | `site.ts` `owner.title` | "Machine Learning Engineer" | AJ, 2026-09-15 |
 | DONE | `site.ts` `owner.tagline` | the "I'm AJ. I build ML systems..." sentence | AJ, verbatim |
 | DONE | `site.ts` `owner.email`, `github`, `linkedin`, `x` | real addresses; X added by A28 | AJ |
-| **OPEN** | `site.ts` `owner.location` | city, country. Recruiters filter on it; it renders on `/about` and in the world's About panel, so a placeholder is visible today | blocks launch |
-| **OPEN** | `site.ts` `timeline[*]` | period, role, org, one-line impact. One placeholder row currently renders on `/about` and `/resume` | blocks launch |
+| DONE | `site.ts` `owner.location` | **removed by A31** (2026-09-16). The field is gone from the schema, the content, `/about` and the world's About panel | AJ's call |
+| DONE | `site.ts` `timeline[*]` | transcribed from AJ's resume, 2026-09-16: UniK Connect, OpenGov Africa, University of Ilorin. Three real rows render on `/about`, `/resume` and the world's About panel. CGPA omitted on AJ's request (A33) | |
 | **OPEN** | `site.ts` `research[3]` (3D Vision) | either write it or delete the station. Left as `EDIT-ME` rather than invented, because neither repo supports a claim about it | blocks launch |
 | DONE | `projects.ts` Nightfall metrics, links, limitations | transcribed from the repo README (0.938 image AUROC, 0.651 PRO, 99.6->25.0 MB, 293 ms fp32 vs 1304 ms INT8) | |
 | **OPEN** | `projects.ts` Nightfall pixel AUROC | the one metric the README does not state; currently shown as `(pixel AUROC: EDIT-ME)` inside the PRO tile | blocks launch |
@@ -6948,7 +6952,7 @@ the ones marked DONE came from AJ or from the repositories themselves.
 | DONE | `rooms/noctis.ts` roster | the eight real graph nodes, A25 | |
 | OPEN | `closet` `secrets[]` | hours spent, what was cut, worst bug | easter egg, not launch |
 | OPEN | `public/samples/*` | 5 image files, see D.3 | upload path works without them |
-| **BROKEN NOW** | `public/resume.pdf` | missing file, so `/resume.pdf` 404s from `/resume`, the landing button and the world's resume pickup. Everything else on those pages works; only the PDF link is dead | blocks launch |
+| DONE | `public/resume.pdf` | shipped 2026-09-16 (A32); `/resume.pdf` returns 200 `application/pdf`. Note the PDF still says "Third Year" - AJ is in his final year now, so it wants regenerating | |
 ## D.3 Sample images (`public/samples/`)
 
 Five files matching the ids in `content/samples.ts`: `gear-01`, `gear-02`, `seal-01`, `seal-02`, `belt-01` — three nominal, two defective, JPEG at 800–1600 px on the long edge, < 1 MB each. Requirements, in order of how often they are forgotten: (1) they must be from **the same distribution the model was trained on**, or the demo's verdicts are theatre; (2) no proprietary or client imagery — a public dataset (MVTec AD's licence permits derivative demonstration use, check the terms as they stand when you read this) or your own photographs; (3) label each file's truth in `samples.ts` and nowhere else on disk, so the UI can compare verdict against label (Task 3.8 Step 3). If the truth is "I have no images yet", ship the upload path only and delete the samples tab — do not ship stock photos of gears.

@@ -11,7 +11,7 @@ export default function ResumePage() {
       </p>
       <h1 className="mt-2 text-3xl font-semibold">Resume</h1>
       <p className="mt-4 text-facility-muted">
-        Full CV with experience, education, and publications.
+        Full CV with experience, education, and projects.
       </p>
       <a
         href={site.owner.resumeUrl}

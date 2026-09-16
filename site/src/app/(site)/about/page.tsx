@@ -10,9 +10,7 @@ export default function AboutPage() {
         {"// About"}
       </p>
       <h1 className="mt-2 text-3xl font-semibold">{site.owner.name}</h1>
-      <p className="mt-1 text-facility-muted">
-        {site.owner.title} · {site.owner.location}
-      </p>
+      <p className="mt-1 text-facility-muted">{site.owner.title}</p>
       <p className="mt-6">{site.owner.tagline}</p>
       <h2 className="mt-10 font-mono text-xs uppercase tracking-widest text-facility-muted">
         {"// Timeline"}

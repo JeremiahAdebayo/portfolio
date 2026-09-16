@@ -34,9 +34,7 @@ export function PanelHost() {
     return (
       <ProjectPanel title="About" onClose={closePanel}>
         <h3 className="mt-4 text-2xl font-semibold">{site.owner.name}</h3>
-        <p className="mt-1 text-facility-muted">
-          {site.owner.title} · {site.owner.location}
-        </p>
+        <p className="mt-1 text-facility-muted">{site.owner.title}</p>
         <p className="mt-4">{site.owner.tagline}</p>
         <h4 className="mt-8 font-mono text-xs uppercase tracking-widest text-facility-muted">
           {`// Timeline`}
