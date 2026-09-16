@@ -59,6 +59,26 @@ export const nightfall: RoomDef = {
     },
     { type: "box", pos: [4, 0.5, 9], size: [1, 1, 1], color: "#4a4038" },
     { type: "box", pos: [14, 0.5, 9], size: [1, 1, 1], color: "#4a4038" },
+    // The inspection line, east-west along z=4. The rails sit on the deck's
+    // edges and the gantry straddles the belt, so the conveyor, the head and
+    // the chute all agree about where the belt is. BeltDirector drives what
+    // moves over it; this is the static half.
+    { type: "box", pos: [9, 0.28, 4], size: [13, 0.1, 1.2], color: "#3a332c" },
+    { type: "box", pos: [9, 0.34, 3.4], size: [13, 0.14, 0.12], color: "#b08968" },
+    { type: "box", pos: [9, 0.34, 4.6], size: [13, 0.14, 0.12], color: "#b08968" },
+    { type: "box", pos: [9, 1.2, 3.3], size: [0.2, 2.4, 0.2], color: "#4a4038" },
+    { type: "box", pos: [9, 2.2, 4], size: [0.5, 0.4, 0.5], color: "#2e2a26" },
+    {
+      type: "screen",
+      pos: [9, 2.2, 4.28],
+      size: [0.2, 0.2, 0.06],
+      color: "#f6ad55",
+      face: "s",
+    },
+    { type: "box", pos: [16.2, 0.9, 4], size: [0.9, 1.8, 1.4], color: "#4a4038" },
+    // The display mast at the head of the line: BeltDirector hangs each card on
+    // it, in the blocked belt row so nobody can walk through the card.
+    { type: "box", pos: [3, 1.5, 3.5], size: [0.16, 2.4, 0.16], color: "#b08968" },
     // Wall "painting" on the west wall, readable from the room. 3.6 x 2.25 is
     // the 1024x640 canvas aspect, so the text is never stretched.
     {
@@ -80,6 +100,12 @@ export const nightfall: RoomDef = {
   blocked: [
     { x: 4, z: 9, w: 1, d: 1 },
     { x: 14, z: 9, w: 1, d: 1 },
+    // The line itself, plus the gantry post and the chute mouth. x=1..2 and
+    // x=17 stay open at z=4, so the room is still walkable north to south on
+    // either side of the belt.
+    { x: 3, z: 4, w: 14, d: 1 },
+    { x: 9, z: 3, w: 1, d: 1 },
+    { x: 16, z: 4, w: 1, d: 1 },
   ],
   interactables: [
     {

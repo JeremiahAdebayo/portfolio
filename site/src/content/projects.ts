@@ -63,7 +63,7 @@ export const projects: Project[] = [
           id: "bottle",
           category: "bottle",
           label: "BOTTLE",
-          image: null, // "/samples/bottle.jpg" once AJ supplies the photo
+          image: "/samples/bottle.png",
           rows: [
             { label: "Image AUROC", value: "0.997" },
             { label: "PRO", value: "0.701" },
@@ -74,7 +74,7 @@ export const projects: Project[] = [
           id: "cable",
           category: "cable",
           label: "CABLE",
-          image: null,
+          image: "/samples/cable.png",
           rows: [
             { label: "Image AUROC", value: "0.927" },
             { label: "PRO", value: "0.497" },
@@ -83,14 +83,19 @@ export const projects: Project[] = [
           source: "Nightfall README, MVTec AD, WideResNet50 fp32",
         },
         {
-          id: "grid",
-          category: "grid",
-          label: "GRID",
-          image: null,
+          // AJ's third photo is wood, not grid, and the two are different
+          // MVTec categories with different published numbers (grid 0.799/0.558
+          // vs wood 0.954/0.779). The card follows the photo, and the numbers
+          // follow the category: attaching the grid row to a wood photo would
+          // have been a quiet lie about a published result.
+          id: "wood",
+          category: "wood",
+          label: "WOOD",
+          image: "/samples/wood.png",
           rows: [
-            { label: "Image AUROC", value: "0.799" },
-            { label: "PRO", value: "0.558" },
-            { label: "Note", value: "hard category in the literature" },
+            { label: "Image AUROC", value: "0.954" },
+            { label: "PRO", value: "0.779" },
+            { label: "Note", value: "2nd-best PRO of the 15" },
           ],
           source: "Nightfall README, MVTec AD, WideResNet50 fp32",
         },

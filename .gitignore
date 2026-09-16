@@ -11,3 +11,14 @@ playwright-report/
 # throwaway Phase 1 browser probes (site/verify-*.mjs), kept local as evidence
 /site/verify-*.mjs
 /site/*.png
+
+# Working copies AJ drops in the repo root. The shipped copy of the resume
+# lives at site/public/resume.pdf and IS tracked; only the root copies are
+# ignored, same for the images now published under site/public/samples/.
+/bottle.png
+/cable.png
+/wood.png
+/Jeremiah Resume.pdf
+
+# Agent transcript, not project source.
+/codex-session-*.md

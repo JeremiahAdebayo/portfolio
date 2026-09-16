@@ -12,7 +12,7 @@
 
 **Supersedes:** this plan *replaces* master-plan Phase 3's demo stack (Tasks 3.4-3.8: `/api/inspect`, rate limiter, mock inference, heatmap, upload downscale, `InspectDemo`, camera capture) and Phase 4's trace machinery (Tasks 4.1-4.4, 4.6: trace format, validator, player, playback store, console panel), plus Appendices A and B and the backend/sample-image decisions. See "Deleted work" at the end. Where this plan and the master plan conflict, **this plan wins**.
 
-**Status (2026-09-15):** Tasks 1-3 are executed and committed (validator + noctis north-wall fix, choreography-as-content, wall frames + GitHub plaques). Task 4's belt is next and does not block on AJ's photos: cards carry `image: null` and render a labelled swatch, so the animation is complete and honest before the pictures arrive. Gates at every commit: `tsc` 0, `lint` 0, `npm run test` 43/43, `npm run build` green, plus headless-browser probes.
+**Status (2026-09-16):** Tasks 1-4 are executed and committed (validator + noctis north-wall fix, choreography-as-content, wall frames + GitHub plaques, Nightfall's pulley and flashcards). The belt now carries AJ's three photos; the third card is `wood`, not `grid` - see the deviation note at the end of Task 4. Task 5 (Noctis agents) is next, and Task 5's own note already warns that the eight desks will crowd the room and may collide with the plaque. Gates at every commit: `tsc` 0, `lint` 0, `npm run test` 46/46, `npm run build` green, plus headless-browser probes.
 
 ## Global constraints
 
@@ -736,7 +736,7 @@ git commit -m "feat: wall frames and github plaques in both project rooms"
 
 **Why a flashcard rather than a HUD:** the metrics must belong to the machine that produced them. A card coming *out of the end of the line* is the claim; a card overlaid on screen is decoration.
 
-- [ ] **Step 1: Card texture** appended to `site/src/world/textures.ts`:
+- [x] **Step 1: Card texture** appended to `site/src/world/textures.ts`:
 
 ```ts
 import type { BeltCard } from "@/content/types";
@@ -779,7 +779,7 @@ export function makeCardTexture(card: BeltCard, accent = "#f6ad55"): THREE.Canva
 }
 ```
 
-- [ ] **Step 2: Photo loading without a dependency.** In `BeltDirector`, one texture per card, created lazily and cached in a `useRef(new Map())`:
+- [x] **Step 2: Photo loading without a dependency.** In `BeltDirector`, one texture per card, created lazily and cached in a `useRef(new Map())`:
 
 ```ts
 const TEXTURE_EDGE = 256;
@@ -821,7 +821,7 @@ function usePhoto(src: string | null): THREE.Texture | null {
 
 `ponytail:` one hook call per card means the hooks must live in a child component (`<ProductFace card={...} />`), not in a loop inside `BeltDirector`. That is the correct shape anyway: each product owns its own texture and disposes it on unmount.
 
-- [ ] **Step 3: The director.** `site/src/world/nightfall/BeltDirector.tsx` - a single `useFrame` driving a phase machine held in refs. No React state per frame (AD-12):
+- [x] **Step 3: The director.** `site/src/world/nightfall/BeltDirector.tsx` - a single `useFrame` driving a phase machine held in refs. No React state per frame (AD-12):
 
 ```tsx
 "use client";
@@ -986,16 +986,83 @@ function ProductEasel({ card, accent }: { card?: BeltCard; accent: string }) {
 
 `phaseOf` above is a placeholder for the real rule and must not ship: the easel shows the *card being presented*, so it needs the same phase ref as the director. Pass `phase` down as a prop (`MutableRefObject<Phase>`) and let the easel read it in its own `useFrame`. Simpler and one fewer texture: give `ProductEasel` the photo and a label plaque, and reuse `FlashCard`'s texture for the reveal by keeping **one** card mesh that the director moves between two poses (easel pose = upright at `[START_X - 1.6, 1.5, BELT_Z + 1.6]`, reveal pose = at the chute). Decide in Step 3; do not build two card systems.
 
-- [ ] **Step 4: The physical line.** Add to `rooms/nightfall.ts` props, replacing the two shell crates: rails as two long `box` props at `[9, 0.34, 3.4]` and `[9, 0.34, 4.6]` size `[13, 0.14, 0.12]`; a belt deck `box [9, 0.28, 4]` size `[13, 0.1, 1.2]` color `#3a332c`; a gantry post `box [9, 1.2, 3.3]` size `[0.2, 2.4, 0.2]` and head `box [9, 2.2, 4]` size `[0.5, 0.4, 0.5]` with a `screen` lens at `[9, 2.2, 4.28]` size `[0.2, 0.2, 0.06]` accent-coloured; a chute `box [16.2, 0.9, 4]` size `[0.9, 1.8, 1.4]` colour `#4a4038`. Blocked: `{ x: 3, z: 4, w: 14, d: 1 }` and `{ x: 9, z: 3, w: 1, d: 1 }` and `{ x: 16, z: 4, w: 1, d: 1 }`.
-- [ ] **Step 5: Mount it.** `Scene.tsx`: `{room.id === "nightfall" && <BeltDirector room={room} />}`.
-- [ ] **Step 6: Verify (dev server, and this is the part tests cannot prove).** Watch a full cycle: picture presented, product appears on the belt at x=3, travels, monitor flips to `SCANNED` as it passes under the head, card pops at the chute with the right numbers, holds, and the next picture follows. Confirm: the belt never overlaps a wall or the doorway; walking into the belt is blocked at every tile in the blocked rect; the card is legible from the spawn point (if not, grow `planeGeometry`, do not shrink the font); with `image: null` all three products show grey swatches and the room still reads as a line, so the animation is shippable before the photos arrive; leaving the room and coming back restarts the cycle cleanly with no console errors and no growing texture count.
-- [ ] **Step 7: Gates.** `npx tsc --noEmit` 0, `npm run lint` 0, `npm run test` green, `npm run build` green. Then a `verify-*.mjs` probe: navigate `/world?room=nightfall`, wait 20 s, assert zero console errors and that the canvas is still attached, and sample `gl.info.memory.textures` twice to prove no texture leak.
-- [ ] **Step 8: Commit.**
+- [x] **Step 4: The physical line.** Add to `rooms/nightfall.ts` props, replacing the two shell crates: rails as two long `box` props at `[9, 0.34, 3.4]` and `[9, 0.34, 4.6]` size `[13, 0.14, 0.12]`; a belt deck `box [9, 0.28, 4]` size `[13, 0.1, 1.2]` color `#3a332c`; a gantry post `box [9, 1.2, 3.3]` size `[0.2, 2.4, 0.2]` and head `box [9, 2.2, 4]` size `[0.5, 0.4, 0.5]` with a `screen` lens at `[9, 2.2, 4.28]` size `[0.2, 0.2, 0.06]` accent-coloured; a chute `box [16.2, 0.9, 4]` size `[0.9, 1.8, 1.4]` colour `#4a4038`. Blocked: `{ x: 3, z: 4, w: 14, d: 1 }` and `{ x: 9, z: 3, w: 1, d: 1 }` and `{ x: 16, z: 4, w: 1, d: 1 }`.
+- [x] **Step 5: Mount it.** `Scene.tsx`: `{room.id === "nightfall" && <BeltDirector room={room} />}`.
+- [x] **Step 6: Verify (dev server, and this is the part tests cannot prove).** Watch a full cycle: picture presented, product appears on the belt at x=3, travels, monitor flips to `SCANNED` as it passes under the head, card pops at the chute with the right numbers, holds, and the next picture follows. Confirm: the belt never overlaps a wall or the doorway; walking into the belt is blocked at every tile in the blocked rect; the card is legible from the spawn point (if not, grow `planeGeometry`, do not shrink the font); with `image: null` all three products show grey swatches and the room still reads as a line, so the animation is shippable before the photos arrive; leaving the room and coming back restarts the cycle cleanly with no console errors and no growing texture count.
+- [x] **Step 7: Gates.** `npx tsc --noEmit` 0, `npm run lint` 0, `npm run test` green, `npm run build` green. Then a `verify-*.mjs` probe: navigate `/world?room=nightfall`, wait 20 s, assert zero console errors and that the canvas is still attached, and sample `gl.info.memory.textures` twice to prove no texture leak.
+- [x] **Step 8: Commit.**
 
 ```powershell
 git add site/src/world
 git commit -m "feat: nightfall pulley with published-result flashcards"
 ```
+
+> **Deviations (executed 2026-09-16).** This task had more internal contradictions
+> than any other, and they are recorded here rather than quietly resolved.
+>
+> 1. **One card mesh, two poses.** The plan builds a `ProductEasel` *and* a
+>    `FlashCard`, then says in the next paragraph "do not build two card systems".
+>    The second instruction wins: a single `cardGroup` is moved by the director
+>    between `EASEL_POSE` and `CHUTE_POSE`. `phaseOf` (a placeholder that would
+>    have shipped as a stub) does not exist.
+> 2. **The card texture is owned by the director, and disposed on index change.**
+>    The plan's `useMemo(() => makeCardTexture(card))` creates a new 512x384 canvas
+>    every time the index advances and disposes it only on unmount - three new
+>    textures a minute, for as long as somebody stands in the room. The cleanup
+>    now runs on each card change, which the probe measures.
+> 3. **`usePhoto` leaked its downsampled texture.** The plan disposes the
+>    *loaded* image but not the `CanvasTexture` it builds from it, and stores the
+>    texture without the src it belongs to - so after a card change it would hand
+>    back the previous card's texture for a frame. Now `{ src, tex }` together,
+>    with a cleanup, and the photo is drawn "cover" into a 4:3 canvas so a
+>    453x362 photo is not squashed on a 4:3 face.
+> 4. **The flashcard pose was inside the chute.** `END_X + 1.4 = 16.4` at
+>    `BELT_Z` is within the chute box (x 15.75-16.65, y 0-1.8), so the card would
+>    have emerged *through* a solid prop. It now pops at `[15.9, 1.75, 5.3]`,
+>    just south of the chute mouth, facing the room.
+> 5. **The monitor was created, updated every frame, and never rendered.** The
+>    plan's `ScreenTexture` had no mesh in the JSX: a texture nothing displayed,
+>    repainted per frame. It is now mounted on the gantry mast at `[9, 1.9, 3.45]`
+>    and repainted only when the status line actually changes.
+> 6. **The easel moved onto the belt's west end, and the card grew.** The plan's
+>    `[START_X - 1.6, 1.5, BELT_Z + 1.6]` sits on open floor, so a card big enough
+>    to read is also a card you walk through. At `[3, 1.85, 4]` it hangs over the
+>    already-blocked belt row. The plane went 2.6x1.95 -> 3.0x2.25 ("grow the
+>    plane, do not shrink the font"); at 2.6 the numbers were around 10 px tall
+>    from the doorway, which is not readable.
+> 7. **The two shell crates stayed.** Step 4 says the belt props replace them, but
+>    the `TECHNICAL DETAILS` interactables at (4,8) and (14,8) are anchored to
+>    those crates; deleting them would leave two prompts standing in empty floor.
+> 8. **Row values are fitted, not sliced.** `makeCardTexture` truncated values to
+>    26 chars, which turns the real cable row into "flags it, localises it ba".
+>    A size ladder plus `fillText`'s `maxWidth` fits or squeezes instead.
+>
+> **Content:** AJ's third photo is `wood.png`, not grid. They are different MVTec
+> categories with different published numbers (grid 0.799/0.558, wood
+> 0.954/0.779, and wood's PRO is the 2nd best of the fifteen). The card follows
+> the photo, the numbers follow the category - attaching grid's row to a wood
+> photo would have been a quiet lie about a published result.
+>
+> **Verification.** `tsc` 0, `lint` 0, 46 tests (3 new: every room's interactables
+> are flood-fill reachable from the spawn - checked by mutation, see below),
+> build green, and `verify-belt2.mjs` over the production build: all three photos
+> fetched 200, live GL textures 11 -> 12 across a card change and 12 -> 9 after
+> leaving the room, zero console errors, canvas still attached. Legibility itself
+> was **not** verified by machine: this agent cannot see images, so `belt-01..05*.png`
+> are left for AJ to judge.
+>
+> **Measured:** the belt's clock is frame-rate clamped exactly like the player's
+> (A27). Under SwiftShader the cycle takes ~17-20 s of wall time instead of
+> 12.2 s, so a probe that sleeps for the nominal duration sees the wrong number of
+> beats. `verify-belt2.mjs` waits on the observable signal (a card's photo being
+> fetched) instead. First draft of the probe made exactly that mistake and
+> reported "wood never loaded", which was the probe's bug, not the room's.
+>
+> **New guard:** the reachability test was proven to bite by temporarily widening
+> the belt's blocked rect to `{x:1,z:4,w:17}`, which seals the north strip. It
+> failed with `nightfall: "nf-monitor" at 9,2 is walled off from the spawn` - the
+> failure mode that would otherwise have shipped silently, because "on floor" is
+> not "reachable".
 
 ---
 

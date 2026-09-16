@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { rooms } from "./rooms";
+import { canStand, makeGridMap } from "./collision";
 import type { RoomDef } from "./types";
 
 const LEGAL = new Set(["#", ".", "D"]);
@@ -110,6 +111,46 @@ describe.each(ids)("room %s", (id) => {
       expect(
         p.size.every((s) => s > 0),
         `${id}: prop at ${p.pos.join(",")} has a non-positive size`,
+      ).toBe(true);
+    }
+  });
+
+  /**
+   * "On floor" is not the same as "reachable". A prop that seals off a corner
+   * of a room passes every other check here and still makes an interaction
+   * impossible to trigger - which is what the Nightfall belt would have done if
+   * its blocked rect had reached the walls on both sides. Flood fills the tiles
+   * the player can actually stand on and asks whether each interaction is
+   * within reach of one of them.
+   */
+  it("can reach every interactable on foot from the spawn", () => {
+    const grid = makeGridMap(room.map, room.blocked);
+    const start = { x: Math.round(room.spawn.x), z: Math.round(room.spawn.z) };
+    const seen = new Set([`${start.x},${start.z}`]);
+    const queue = [start];
+    while (queue.length) {
+      const { x, z } = queue.shift()!;
+      for (const [dx, dz] of [
+        [1, 0],
+        [-1, 0],
+        [0, 1],
+        [0, -1],
+      ]) {
+        const key = `${x + dx},${z + dz}`;
+        if (seen.has(key) || !canStand(grid, x + dx, z + dz)) continue;
+        seen.add(key);
+        queue.push({ x: x + dx, z: z + dz });
+      }
+    }
+    expect(seen.size, `${id}: spawn cannot reach any other tile`).toBeGreaterThan(1);
+    for (const item of room.interactables) {
+      const reachable = [...seen].some((key) => {
+        const [x, z] = key.split(",").map(Number);
+        return Math.hypot(x - item.pos[0], z - item.pos[1]) <= item.radius + 0.5;
+      });
+      expect(
+        reachable,
+        `${id}: "${item.id}" at ${item.pos.join(",")} is walled off from the spawn`,
       ).toBe(true);
     }
   });

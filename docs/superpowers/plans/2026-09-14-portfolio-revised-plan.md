@@ -153,6 +153,9 @@ Written when Phases 3.3 → 7.4 were added. Read this before executing Phase 3; 
 | A32 | `public/resume.pdf` is shipped (18 KB); the "BROKEN NOW" register row is closed | `/resume.pdf` 404'd from `/resume`, the landing button and the world's resume pickup. AJ supplied the PDF on 2026-09-16, so it now sits at `site/public/resume.pdf` and the URL returns 200 `application/pdf`. It is a plain committed asset - nothing generates it at build time. |
 | A33 | The timeline is transcribed from AJ's resume, and **CGPA is deliberately not shown** | AJ asked for the CGPA to stay off the site even though his resume lists it. Timeline rows come from the resume's EXPERIENCE and EDUCATION sections and claim only what the resume claims: UniK Connect (March-August 2026), OpenGov Africa (August 2025-present), B.Sc. Information Technology at the University of Ilorin (expected 2027). The study year reads "Final year" rather than "fourth year" because "final year" is what a reader can act on without knowing the programme's length. NOTE: the shipped PDF still says "Third Year" - AJ should regenerate it. |
 
+| A34 | Animated set-pieces share the player's frame-rate clamp: their wall-clock duration is not their nominal duration | The player has been clamped since A27 (`useFrame` caps dt at 0.05s), and the Nightfall belt inherits it. Under SwiftShader the belt's 12.2s cycle takes 17-20s of wall time, so anything that waits for a nominal duration sees the wrong number of beats. Probes must poll for an observable signal (a card's photo being fetched), never sleep for the cycle length. This is also why the cycle reads as "slow" on a software renderer and normal on real hardware. |
+| A35 | Which categories the belt shows is AJ's choice of photos; the published numbers always follow the category | AJ supplied bottle, cable and wood. The plan had bottle, cable, grid. Grid (0.799/0.558) and wood (0.954/0.779) are different MVTec categories, so the card was rewritten to wood rather than reusing grid's row under a wood photo - a published result attached to the wrong category is worse than a missing card. Same rule as D.4: a room that under-claims beats one that over-claims. |
+
 New decisions AD-15 → AD-18 are in §2 above. Everything else in §0–§4 stands as written.
 
 ---
@@ -6951,7 +6954,7 @@ the ones marked DONE came from AJ or from the repositories themselves.
 | OPEN | `noctis/traces.ts` `provenance`, `recordedAt` | real run provenance (B.3); needs AJ to run Noctis and record | blocks launch |
 | DONE | `rooms/noctis.ts` roster | the eight real graph nodes, A25 | |
 | OPEN | `closet` `secrets[]` | hours spent, what was cut, worst bug | easter egg, not launch |
-| OPEN | `public/samples/*` | 5 image files, see D.3 | upload path works without them |
+| DONE | `public/samples/*` | AJ's three photos ship as `bottle.png`, `cable.png`, `wood.png` (Task 4's belt). D.3's five-sample upload set is superseded by the animated-demos plan - there is no upload path any more | |
 | DONE | `public/resume.pdf` | shipped 2026-09-16 (A32); `/resume.pdf` returns 200 `application/pdf`. Note the PDF still says "Third Year" - AJ is in his final year now, so it wants regenerating | |
 ## D.3 Sample images (`public/samples/`)
 

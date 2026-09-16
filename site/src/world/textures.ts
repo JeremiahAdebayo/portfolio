@@ -1,3 +1,4 @@
+import type { BeltCard } from "@/content/types";
 import * as THREE from "three";
 
 /** In-world sign as a canvas texture. No drei, no font loading (AD-11). */
@@ -127,6 +128,75 @@ export function makeFrameTexture(
     }
   }
   if (line) ctx.fillText(line, 64, y);
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
+const CARD_W = 512;
+const CARD_H = 384;
+
+/**
+ * The printed flashcard: the published numbers, and the line that says where
+ * they came from. 512x384 matches the 2.6 x 1.95 tile plane exactly, so glyphs
+ * are never stretched.
+ *
+ * Row values are drawn at the largest size in `SIZES` that fits, rather than
+ * being sliced to a fixed character count: "flags it, localises it badly" is a
+ * real row and an ellipsis would have cut the meaning off it.
+ */
+export function makeCardTexture(
+  card: BeltCard,
+  accent = "#f6ad55",
+): THREE.CanvasTexture {
+  const canvas = document.createElement("canvas");
+  canvas.width = CARD_W;
+  canvas.height = CARD_H;
+  const ctx = canvas.getContext("2d")!;
+  ctx.fillStyle = "#0b0e14";
+  ctx.fillRect(0, 0, CARD_W, CARD_H);
+  ctx.strokeStyle = accent;
+  ctx.lineWidth = 8;
+  ctx.strokeRect(4, 4, CARD_W - 8, CARD_H - 8);
+  ctx.textBaseline = "top";
+
+  ctx.textAlign = "left";
+  ctx.fillStyle = accent;
+  ctx.font = "bold 44px ui-monospace, monospace";
+  ctx.fillText(card.label.slice(0, 16), 28, 28, CARD_W - 56);
+
+  // Largest size that fits the available width ends up used; fillText's
+  // maxWidth is the backstop so a very long value is squeezed, never dropped.
+  const drawFitted = (text: string, x: number, y: number, maxWidth: number, sizes: number[]) => {
+    for (const [i, size] of sizes.entries()) {
+      ctx.font = `bold ${size}px ui-monospace, monospace`;
+      if (ctx.measureText(text).width <= maxWidth || i === sizes.length - 1) {
+        ctx.fillText(text, x, y, maxWidth);
+        return;
+      }
+    }
+  };
+
+  card.rows.slice(0, 4).forEach((row, i) => {
+    const y = 104 + i * 54;
+    ctx.textAlign = "left";
+    ctx.fillStyle = "#8b94a7";
+    ctx.font = "24px ui-monospace, monospace";
+    ctx.fillText(row.label.toUpperCase().slice(0, 14), 28, y + 6);
+    const labelWidth = ctx.measureText(row.label.toUpperCase().slice(0, 14)).width;
+    ctx.textAlign = "right";
+    ctx.fillStyle = "#e6eaf2";
+    drawFitted(row.value, CARD_W - 28, y, CARD_W - 28 - (28 + labelWidth + 16), [30, 26, 22, 19, 16]);
+  });
+
+  // The honesty line. Small, but present on every card.
+  ctx.textAlign = "left";
+  ctx.fillStyle = accent;
+  ctx.font = "17px ui-monospace, monospace";
+  ctx.fillText("PUBLISHED RESULTS", 28, 330, CARD_W - 56);
+  ctx.fillStyle = "#8b94a7";
+  drawFitted(card.source, 28, 352, CARD_W - 56, [17, 15, 13]);
+
   const tex = new THREE.CanvasTexture(canvas);
   tex.colorSpace = THREE.SRGBColorSpace;
   return tex;
