@@ -10,22 +10,25 @@ export const hub: RoomDef = {
     accent: "#4fd1c5",
     trim: "#8b94a7",
   },
+  // Doorways are three tiles wide. One tile read as too small to walk through,
+  // and three is the width that lands centred on the room (the hub's midline is
+  // the odd tile x=9) - which is also exactly what the door signs cap.
   map: [
-    "#########D#########",
-    "#.................#",
+    "########DDD########",
     "#.................#",
     "#.................#",
     "#.................#",
     "#.................#",
     "#.................#",
     "D.................D",
+    "D.................D",
+    "D.................D",
     "#.................#",
     "#.................#",
     "#.................#",
     "#.................#",
     "#.................#",
-    "#.................#",
-    "#########D#########",
+    "########DDD########",
   ],
   spawn: { x: 9, z: 8, facing: "n" },
   props: [
@@ -68,6 +71,12 @@ export const hub: RoomDef = {
       face: "n",
     },
     // corner pillars (blocked)
+    // Lintels: without a header the widened opening looks like missing wall
+    // rather than a door. Sits behind the door sign, which is the visible cap.
+    { type: "box", pos: [9, 2.5, 0], size: [3, 1, 0.7], color: "#3b465c" },
+    { type: "box", pos: [9, 2.5, 14], size: [3, 1, 0.7], color: "#3b465c" },
+    { type: "box", pos: [0, 2.5, 7], size: [0.7, 1, 3], color: "#3b465c" },
+    { type: "box", pos: [18, 2.5, 7], size: [0.7, 1, 3], color: "#3b465c" },
     { type: "box", pos: [4, 1.2, 3], size: [1, 2.4, 1], color: "#3b465c" },
     { type: "box", pos: [14, 1.2, 3], size: [1, 2.4, 1], color: "#3b465c" },
     { type: "box", pos: [4, 1.2, 11], size: [1, 2.4, 1], color: "#3b465c" },
@@ -102,7 +111,12 @@ export const hub: RoomDef = {
     },
   ],
   doors: {
+    // Every tile of an opening is a door: whichever one you step on, you leave.
+    "8,0": { targetRoom: "nightfall", spawn: { x: 9, z: 11 }, facing: "n" },
     "9,0": { targetRoom: "nightfall", spawn: { x: 9, z: 11 }, facing: "n" },
+    "10,0": { targetRoom: "nightfall", spawn: { x: 9, z: 11 }, facing: "n" },
+    "18,6": { targetRoom: "noctis", spawn: { x: 1, z: 6 }, facing: "e" },
     "18,7": { targetRoom: "noctis", spawn: { x: 1, z: 6 }, facing: "e" },
+    "18,8": { targetRoom: "noctis", spawn: { x: 1, z: 6 }, facing: "e" },
   },
 };

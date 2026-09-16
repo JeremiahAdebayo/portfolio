@@ -32,7 +32,7 @@ export const nightfall: RoomDef = {
     "#.................#",
     "#.................#",
     "#.................#",
-    "#########D#########",
+    "########DDD########",
   ],
   spawn: { x: 9, z: 11, facing: "n" },
   props: [
@@ -78,7 +78,9 @@ export const nightfall: RoomDef = {
     { type: "box", pos: [16.2, 0.9, 4], size: [0.9, 1.8, 1.4], color: "#4a4038" },
     // The display mast at the head of the line: BeltDirector hangs each card on
     // it, in the blocked belt row so nobody can walk through the card.
-    { type: "box", pos: [3, 1.5, 3.5], size: [0.16, 2.4, 0.16], color: "#b08968" },
+    { type: "box", pos: [5, 1.5, 3.5], size: [0.16, 2.4, 0.16], color: "#b08968" },
+    // lintel behind the "CORE HUB" sign, closing the wall over the widened door
+    { type: "box", pos: [9, 2.5, 12], size: [3, 1, 0.7], color: "#4a4038" },
     // Wall "painting" on the west wall, readable from the room. 3.6 x 2.25 is
     // the 1024x640 canvas aspect, so the text is never stretched.
     {
@@ -138,6 +140,8 @@ export const nightfall: RoomDef = {
     },
   ],
   doors: {
+    "8,12": { targetRoom: "hub", spawn: { x: 9, z: 1 }, facing: "s" },
     "9,12": { targetRoom: "hub", spawn: { x: 9, z: 1 }, facing: "s" },
+    "10,12": { targetRoom: "hub", spawn: { x: 9, z: 1 }, facing: "s" },
   },
 };

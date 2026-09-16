@@ -31,21 +31,49 @@ const BELT_Y = 0.62;
 const BELT_Z = 4;
 
 /**
- * Where the card is shown at the start of a cycle, and where it pops out.
- * The easel pose sits *over the belt's west end* (z=4) rather than beside it:
- * that row is already blocked, so the display cannot be walked through, and the
- * card can be big enough to read from the doorway.
+ * The sample itself is shown at the head of the line, and the printed card
+ * comes out of the chute at the far end. Showing the picture first and the
+ * numbers last is the point: you look at the thing, then you read what the
+ * model scored on that category.
+ *
+ * The display sits *over the belt's west end* (z=4) rather than beside it: that
+ * row is already blocked, so the picture cannot be walked through, and it can
+ * be big enough to read from the doorway.
  */
-const EASEL_POSE: [number, number, number] = [3, 1.85, 4];
+const EASEL_POSE: [number, number, number] = [5, 2.05, 4];
 const CHUTE_POSE: [number, number, number] = [15.9, 1.75, 5.3];
 /** the status screen, mounted on the gantry mast facing the room */
 const MONITOR_POS: [number, number, number] = [9, 1.9, 3.45];
+/** width of the presented sample; the height follows the photo's own aspect */
+const EASEL_FACE_W = 3.4;
+/** width of the photographed face riding on the product */
+const PRODUCT_FACE_W = 0.62;
 /** card is 4:3, matching the 512x384 canvas; grown so the numbers read at range */
 const CARD_SIZE: [number, number] = [3, 2.25];
 const MONITOR_SIZE: [number, number] = [3.2, 1.6];
 
-/** photos are downsampled to this on load: fixed GPU cost, whatever AJ sends */
-const PHOTO_EDGE = 256;
+/** used until the photo's own aspect is known (and when there is no photo) */
+const FALLBACK_ASPECT = 4 / 3;
+
+/**
+ * A face sized to the photo it carries. The plan resampled every photo into a
+ * fixed 4:3 canvas with a cover-crop, which both squashed nothing and rendered
+ * nothing: the CanvasTexture built in the loader callback sampled black, while
+ * the same `document.createElement("canvas")` path works fine when the texture
+ * is built during render (makeCardTexture). Dropping the canvas removes the
+ * resample, the crop and the bug: the plane takes the image's own aspect.
+ */
+function photoAspect(photo: THREE.Texture | null): number {
+  const img = photo?.image as { naturalWidth?: number; naturalHeight?: number } | null;
+  const w = img?.naturalWidth ?? 0;
+  const h = img?.naturalHeight ?? 0;
+  return w > 0 && h > 0 ? w / h : FALLBACK_ASPECT;
+}
+
+/** A face sized to the photo it carries, so nothing is ever squashed. */
+function faceSize(photo: THREE.Texture | null, width: number): [number, number] {
+  return [width, width / photoAspect(photo)];
+}
 
 type Phase = "present" | "travel" | "reveal";
 
@@ -57,6 +85,7 @@ export function BeltDirector({ room }: { room: RoomDef }) {
   const phase = useRef<Phase>("present");
   const clock = useRef(0);
   const product = useRef<THREE.Group>(null);
+  const easel = useRef<THREE.Group>(null);
   const cardGroup = useRef<THREE.Group>(null);
   const cardMat = useRef<THREE.MeshBasicMaterial>(null);
   const statusKey = useRef("");
@@ -66,6 +95,11 @@ export function BeltDirector({ room }: { room: RoomDef }) {
   useEffect(() => () => monitor.dispose(), [monitor]);
 
   const card: BeltCard | undefined = cards[index];
+  // One photo per card, owned here so the presented picture and the product
+  // riding the belt are the same texture rather than two loads of one file.
+  const photo = useCardPhoto(card?.image);
+  const easelFace = faceSize(photo, EASEL_FACE_W);
+  const productFace = faceSize(photo, PRODUCT_FACE_W);
   const cardTex = useMemo(
     () => (card ? makeCardTexture(card, accent) : null),
     [card, accent],
@@ -82,18 +116,21 @@ export function BeltDirector({ room }: { room: RoomDef }) {
     const t = clock.current;
     const p = product.current;
     const g = cardGroup.current;
+    const e = easel.current;
     const m = cardMat.current;
 
     let status: string;
     if (phase.current === "present") {
       status = "DISPLAYING";
       if (p) p.visible = false;
-      if (g) {
-        g.visible = true;
-        g.position.set(...EASEL_POSE);
-        g.scale.setScalar(1);
+      if (g) g.visible = false;
+      if (e) {
+        e.visible = true;
+        e.position.set(...EASEL_POSE);
+        // a slow breath, so the picture is clearly a live display
+        e.position.y = EASEL_POSE[1] + Math.sin(t * 1.6) * 0.06;
+        e.scale.setScalar(0.85 + 0.15 * Math.min(1, t / 0.5));
       }
-      if (m) m.opacity = 1;
       if (t >= PRESENT_S) {
         phase.current = "travel";
         clock.current = 0;
@@ -103,6 +140,7 @@ export function BeltDirector({ room }: { room: RoomDef }) {
       const x = START_X + (END_X - START_X) * k;
       status = x >= GANTRY_X ? "SCANNED" : "ON BELT";
       if (g) g.visible = false;
+      if (e) e.visible = false;
       if (p) {
         p.visible = true;
         p.position.set(x, BELT_Y, BELT_Z);
@@ -117,6 +155,7 @@ export function BeltDirector({ room }: { room: RoomDef }) {
     } else {
       status = "CARD OUT";
       if (p) p.visible = false;
+      if (e) e.visible = false;
       if (g) {
         g.visible = true;
         g.position.set(...CHUTE_POSE);
@@ -155,7 +194,31 @@ export function BeltDirector({ room }: { room: RoomDef }) {
         <meshBasicMaterial map={monitor.texture} />
       </mesh>
 
-      <group ref={cardGroup} position={EASEL_POSE}>
+      {/* the sample, shown at the head of the line before it rides */}
+      <group ref={easel} position={EASEL_POSE}>
+        {/*
+         * Two meshes with separate keys, not one mesh with a swapped material.
+         * R3F reconciles `mesh` + `meshBasicMaterial` by type and reuses the
+         * instance, so setting `map` on a material that was compiled without one
+         * leaves the texture unsampled - the photo rendered black. A keyed
+         * element is a different element, so the mapped material is built fresh.
+         */}
+        {photo ? (
+          <mesh key="photo">
+            <planeGeometry args={easelFace} />
+            <meshBasicMaterial map={photo} />
+          </mesh>
+        ) : (
+          // no photo supplied: a grey plate, never a fake picture
+          <mesh key="swatch">
+            <planeGeometry args={[EASEL_FACE_W, EASEL_FACE_W / FALLBACK_ASPECT]} />
+            <meshBasicMaterial color="#8b94a7" />
+          </mesh>
+        )}
+      </group>
+
+      {/* the printed card, out of the chute at the far end */}
+      <group ref={cardGroup} visible={false}>
         {cardTex && (
           <mesh>
             <planeGeometry args={CARD_SIZE} />
@@ -174,7 +237,7 @@ export function BeltDirector({ room }: { room: RoomDef }) {
           <boxGeometry args={[0.7, 0.5, 0.7]} />
           <meshLambertMaterial color={room.palette.trim} />
         </mesh>
-        <ProductFace card={card} />
+        <ProductFace photo={photo} size={productFace} />
       </group>
     </group>
   );
@@ -185,39 +248,16 @@ export function BeltDirector({ room }: { room: RoomDef }) {
  * product owns exactly one texture and disposes it on unmount or card change.
  */
 function useCardPhoto(src: string | null | undefined): THREE.Texture | null {
-  // The src is stored beside the texture so a re-render can never hand back a
-  // texture that belongs to the previous card.
   const [photo, setPhoto] = useState<{ src: string; tex: THREE.Texture } | null>(null);
 
   useEffect(() => {
     if (!src) return;
     let alive = true;
-    let made: THREE.CanvasTexture | null = null;
-    new THREE.TextureLoader().load(
+    const tex = new THREE.TextureLoader().load(
       src,
       (loaded) => {
-        if (!alive) {
-          loaded.dispose();
-          return;
-        }
-        const img = loaded.image as HTMLImageElement;
-        const canvas = document.createElement("canvas");
-        canvas.width = PHOTO_EDGE;
-        canvas.height = Math.round(PHOTO_EDGE * (0.465 / 0.62));
-        const ctx = canvas.getContext("2d")!;
-        // Cover, not stretch: a 453x362 photo on a 4:3 face would otherwise be
-        // squashed, and squashing a photo of a defect is a lie about its shape.
-        const scale = Math.max(
-          canvas.width / img.naturalWidth,
-          canvas.height / img.naturalHeight,
-        );
-        const w = img.naturalWidth * scale;
-        const h = img.naturalHeight * scale;
-        ctx.drawImage(img, (canvas.width - w) / 2, (canvas.height - h) / 2, w, h);
-        loaded.dispose();
-        made = new THREE.CanvasTexture(canvas);
-        made.colorSpace = THREE.SRGBColorSpace;
-        setPhoto({ src, tex: made });
+        loaded.colorSpace = THREE.SRGBColorSpace;
+        if (alive) setPhoto({ src, tex: loaded });
       },
       undefined,
       () => {
@@ -227,25 +267,36 @@ function useCardPhoto(src: string | null | undefined): THREE.Texture | null {
     );
     return () => {
       alive = false;
-      made?.dispose();
+      tex.dispose();
     };
   }, [src]);
 
   return src && photo?.src === src ? photo.tex : null;
 }
 
-function ProductFace({ card }: { card?: BeltCard }) {
-  const photo = useCardPhoto(card?.image);
-  return (
-    <mesh position={[0, 0.02, 0.36]}>
-      <planeGeometry args={[0.62, 0.465]} />
-      {photo ? (
+function ProductFace({
+  photo,
+  size,
+}: {
+  photo: THREE.Texture | null;
+  size: [number, number];
+}) {
+  // Keyed, for the same reason as the easel: a material that gains a `map`
+  // after being compiled without one renders black.
+  if (photo) {
+    return (
+      <mesh key="photo" position={[0, 0.02, 0.36]}>
+        <planeGeometry args={size} />
         <meshBasicMaterial map={photo} />
-      ) : (
-        // No photo yet: a labelled grey face, so a missing image is visible
-        // rather than faked.
-        <meshBasicMaterial color="#8b94a7" />
-      )}
+      </mesh>
+    );
+  }
+  return (
+    <mesh key="swatch" position={[0, 0.02, 0.36]}>
+      <planeGeometry args={size} />
+      {/* No photo yet: a grey face, so a missing image is visible rather than
+          faked. */}
+      <meshBasicMaterial color="#8b94a7" />
     </mesh>
   );
 }

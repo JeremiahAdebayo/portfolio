@@ -97,7 +97,7 @@ export function PlayerController() {
 
   return (
     <>
-      <CameraRig target={group} />
+      <CameraRig target={group} close={room.id !== "hub"} />
       <group ref={group}>
         <Character movingRef={movingRef} />
       </group>

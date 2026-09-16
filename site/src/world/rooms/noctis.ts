@@ -27,9 +27,9 @@ export const noctis: RoomDef = {
     "#.................#",
     "#.................#",
     "#.................#",
-    "#.................#",
     "D.................#",
-    "#.................#",
+    "D.................#",
+    "D.................#",
     "#.................#",
     "#.................#",
     "#.................#",
@@ -60,6 +60,8 @@ export const noctis: RoomDef = {
       face: "e",
     },
     { type: "box", pos: [9, 0.5, 6], size: [1.6, 1, 1.6], color: "#31423a" },
+    // lintel behind the "CORE HUB" sign, closing the wall over the widened door
+    { type: "box", pos: [0, 2.5, 6], size: [0.7, 1, 3], color: "#31423a" },
     // Wall "painting" on the east wall, opposite the doorway so it is the first
     // thing you see on the way in.
     {
@@ -96,6 +98,8 @@ export const noctis: RoomDef = {
     },
   ],
   doors: {
+    "0,5": { targetRoom: "hub", spawn: { x: 17, z: 7 }, facing: "w" },
     "0,6": { targetRoom: "hub", spawn: { x: 17, z: 7 }, facing: "w" },
+    "0,7": { targetRoom: "hub", spawn: { x: 17, z: 7 }, facing: "w" },
   },
 };

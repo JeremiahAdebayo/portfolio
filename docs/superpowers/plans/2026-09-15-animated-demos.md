@@ -1064,6 +1064,17 @@ git commit -m "feat: nightfall pulley with published-result flashcards"
 > failure mode that would otherwise have shipped silently, because "on floor" is
 > not "reachable".
 
+> **Revised beat (AJ, 2026-09-16).** The order changed after seeing it run: the
+> **photo** is now what appears at the head of the line, and the numeric card
+> appears only at the chute. The plan showed a numbers card at *both* ends,
+> which meant the only place a photo ever appeared was a 0.62-tile face on the
+> product - AJ's report was "the images are not showing, only cards appear at
+> both ends of the pulley". The display is the same easel, carrying the sample
+> at 3.4 tiles wide so it reads from the doorway; the monitor above the gantry
+> names the category while it is up. This is also why the photo bug (A37) was
+> invisible for so long: a black 0.62-tile face on a dark belt looks like a
+> shadow, and the card - the only textured thing at scale - was working.
+
 ---
 
 ## Task 5: Noctis - agents that walk the work over
