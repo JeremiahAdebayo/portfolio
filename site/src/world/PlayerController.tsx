@@ -97,7 +97,11 @@ export function PlayerController() {
 
   return (
     <>
-      <CameraRig target={group} close={room.id !== "hub"} />
+      <CameraRig
+        target={group}
+        inRoom={room.id !== "hub"}
+        startYaw={FACING_ANGLE[room.spawn.facing]}
+      />
       <group ref={group}>
         <Character movingRef={movingRef} />
       </group>
