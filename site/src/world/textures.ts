@@ -64,6 +64,7 @@ export class ScreenTexture {
 export function makeFloorTexture(
   floor: string,
   line: string,
+  pattern: "grid" | "stripes" | "dots" | "crosshatch" | "solid" = "grid",
 ): THREE.CanvasTexture {
   const canvas = document.createElement("canvas");
   canvas.width = 64;
@@ -72,8 +73,32 @@ export function makeFloorTexture(
   ctx.fillStyle = floor;
   ctx.fillRect(0, 0, 64, 64);
   ctx.strokeStyle = line;
+  ctx.fillStyle = line;
+  ctx.globalAlpha = 0.7;
   ctx.lineWidth = 2;
-  ctx.strokeRect(0, 0, 64, 64);
+  if (pattern === "grid") {
+    ctx.strokeRect(0, 0, 64, 64);
+  } else if (pattern === "stripes") {
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.moveTo(0, 64);
+    ctx.lineTo(64, 0);
+    ctx.stroke();
+  } else if (pattern === "dots") {
+    ctx.beginPath();
+    ctx.arc(16, 16, 4, 0, Math.PI * 2);
+    ctx.arc(48, 48, 4, 0, Math.PI * 2);
+    ctx.fill();
+  } else if (pattern === "crosshatch") {
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(64, 64);
+    ctx.moveTo(64, 0);
+    ctx.lineTo(0, 64);
+    ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
   const tex = new THREE.CanvasTexture(canvas);
   tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
   tex.colorSpace = THREE.SRGBColorSpace;
@@ -223,6 +248,38 @@ export function makePlaqueTexture(
   ctx.textBaseline = "middle";
   // ASCII arrow: no font loading, and "[E] OPEN GITHUB /" reads fine.
   ctx.fillText(`${text.slice(0, 18)} /`, 256, 50);
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
+/**
+ * The speech plate over a working agent's head. 512x96 is the same 16:3 as the
+ * 2.1 x 0.394 tile plane it hangs on, so the glyphs are never stretched. The
+ * camera in a room is at a fixed angle (CameraRig), so this is a plain plane
+ * with no billboarding maths.
+ */
+export function makeCaptionTexture(
+  text: string,
+  opts: { accent?: string; fg?: string } = {},
+): THREE.CanvasTexture {
+  const { accent = "#48bb78", fg = "#e6eaf2" } = opts;
+  const canvas = document.createElement("canvas");
+  canvas.width = 512;
+  canvas.height = 96;
+  const ctx = canvas.getContext("2d")!;
+  ctx.fillStyle = "#05070c";
+  ctx.fillRect(0, 0, 512, 96);
+  ctx.strokeStyle = accent;
+  ctx.lineWidth = 5;
+  ctx.strokeRect(3, 3, 506, 90);
+  ctx.fillStyle = fg;
+  ctx.font = "bold 34px ui-monospace, monospace";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  // 28 characters is what fits 506px at 34px monospace; the slice is a backstop
+  // for a caption that grows, and validateContent caps it at the same number.
+  ctx.fillText(text.slice(0, 28), 256, 44);
   const tex = new THREE.CanvasTexture(canvas);
   tex.colorSpace = THREE.SRGBColorSpace;
   return tex;

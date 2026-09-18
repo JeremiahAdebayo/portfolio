@@ -14,10 +14,11 @@ export const nightfall: RoomDef = {
   name: "NIGHTFALL — VISION LAB",
   subtitle: "Visual anomaly detection, end to end",
   palette: {
-    floor: "#2e2a26",
-    wall: "#4a4038",
-    accent: "#f6ad55",
-    trim: "#b08968",
+    floor: "#241b18",
+    wall: "#76513d",
+    accent: "#f28e2b",
+    trim: "#f7d488",
+    floorPattern: "stripes",
   },
   map: [
     "###################",
@@ -38,21 +39,22 @@ export const nightfall: RoomDef = {
   props: [
     {
       type: "sign",
-      pos: [9, 2.4, 0.45],
+      pos: [9, 2.58, 0.45],
       size: [3.2, 0.8, 0.12],
       text: "NIGHTFALL",
       face: "s",
     },
     {
-      type: "screen",
-      pos: [9, 1.6, 0.55],
-      size: [2.6, 1.4, 0.12],
-      color: "#f6ad55",
-      face: "s",
+      type: "frame",
+      pos: [0.58, 1.9, 7],
+      size: [3.6, 2.25, 0.14],
+      text: project.room.frame.title,
+      body: project.room.frame.body,
+      face: "e",
     },
     {
       type: "sign",
-      pos: [9, 0.75, 12.55],
+      pos: [9, 2.4, 11.42],
       size: [2.8, 0.55, 0.12],
       text: "← CORE HUB",
       face: "n",
@@ -81,16 +83,6 @@ export const nightfall: RoomDef = {
     { type: "box", pos: [5, 1.5, 3.5], size: [0.16, 2.4, 0.16], color: "#b08968" },
     // lintel behind the "CORE HUB" sign, closing the wall over the widened door
     { type: "box", pos: [9, 2.5, 12], size: [3, 1, 0.7], color: "#4a4038" },
-    // Wall "painting" on the west wall, readable from the room. 3.6 x 2.25 is
-    // the 1024x640 canvas aspect, so the text is never stretched.
-    {
-      type: "frame",
-      pos: [0.58, 1.9, 7],
-      size: [3.6, 2.25, 0.14],
-      text: project.room.frame.title,
-      body: project.room.frame.body,
-      face: "e",
-    },
     {
       type: "plaque",
       pos: [0.63, 0.72, 7],
@@ -112,7 +104,7 @@ export const nightfall: RoomDef = {
   interactables: [
     {
       id: "nf-monitor",
-      pos: [9, 2],
+      pos: [2, 7],
       radius: 1.8,
       prompt: "VIEW SYSTEM STATUS",
       action: { type: "panel", panel: { kind: "project", slug: "nightfall" } },
@@ -133,7 +125,7 @@ export const nightfall: RoomDef = {
     },
     {
       id: "nf-github",
-      pos: [2, 7],
+      pos: [9, 2],
       radius: 1.6,
       prompt: "OPEN NIGHTFALL REPO",
       action: { type: "link", href: project.room.github.href },

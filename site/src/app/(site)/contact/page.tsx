@@ -3,13 +3,16 @@ import { site } from "@/content/site";
 
 export const metadata: Metadata = { title: "Contact" };
 
+const emailHref =
+  "mailto:jrmhadebayo@gmail.com?subject=Portfolio%20contact&body=Hi%20AJ%2C%0A%0A";
+
 export default function ContactPage() {
   // Cards carry the channel NAME only, never the URL (AJ, 2026-09-15): the href
   // is the link, repeating it as visible text is noise. Nothing here is typed
   // again from content either way - the old hardcoded "github.com/EDIT-ME" was a
   // second source of truth and went stale the moment the real handle landed.
   const channels = [
-    { label: "Email", href: `mailto:${site.owner.email}` },
+    { label: "Email", href: emailHref },
     { label: "GitHub", href: site.owner.github },
     { label: "LinkedIn", href: site.owner.linkedin },
     { label: "X", href: site.owner.x },
@@ -24,7 +27,8 @@ export default function ContactPage() {
         Email is fastest. No forms, no friction.
       </p>
       <a
-        href={`mailto:${site.owner.email}`}
+        href={emailHref}
+        aria-label="Send email to AJ"
         className="mt-6 inline-block rounded-md bg-accent px-5 py-3 font-mono text-sm font-bold text-facility-bg hover:opacity-90"
       >
         [ SEND EMAIL ]

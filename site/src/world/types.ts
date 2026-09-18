@@ -5,6 +5,7 @@ export interface RoomPalette {
   wall: string;
   accent: string;
   trim: string;
+  floorPattern: "grid" | "stripes" | "dots" | "crosshatch" | "solid";
 }
 
 export type PropType =
@@ -37,6 +38,7 @@ export interface PropDef {
 export type PanelTarget =
   | { kind: "project"; slug: string }
   | { kind: "about" }
+  | { kind: "contact" }
   | { kind: "research" }
   | { kind: "demo"; slug: string };
 

@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { rooms } from "./rooms";
 import { canStand, makeGridMap } from "./collision";
+import { noctisStations } from "./noctis/agents";
+import { projects } from "@/content/projects";
 import type { RoomDef } from "./types";
 
 const LEGAL = new Set(["#", ".", "D"]);
@@ -170,5 +172,68 @@ describe("facility connectivity", () => {
       }
     }
     expect([...seen].sort()).toEqual([...ids].sort());
+  });
+});
+
+/**
+ * The animated rooms. Task 1 deliberately did not land these against an empty
+ * roster (a suite with nothing in it proves nothing); they land here, with
+ * Task 5, when there is a cast to assert on.
+ */
+describe("the noctis pipeline", () => {
+  const noctis = rooms.noctis;
+  const pipeline = projects.find((p) => p.slug === "noctis")!.room.pipeline ?? [];
+  const grid = makeGridMap(noctis.map, noctis.blocked);
+
+  it("names a real station for every step", () => {
+    const roster = new Set(noctisStations.map((s) => s.id));
+    expect(pipeline.length, "the pipeline is empty, so this proves nothing").toBeGreaterThan(0);
+    for (const [i, step] of pipeline.entries()) {
+      expect(roster.has(step.agent), `pipeline[${i}] names unknown agent "${step.agent}"`).toBe(
+        true,
+      );
+    }
+  });
+
+  it("keeps the loop honest: the cycle contains a failing verdict", () => {
+    // The retry edge is the point of a multi-agent system, so a cycle where
+    // every step succeeds would be a sales video (see the plan's decision).
+    expect(pipeline.some((s) => s.ok === false)).toBe(true);
+  });
+
+  it("gives every station its own desk tile on floor, blocked by that desk", () => {
+    const seen = new Set<string>();
+    for (const s of noctisStations) {
+      const key = `${s.tile[0]},${s.tile[1]}`;
+      expect(seen.has(key), `two stations share tile ${key}`).toBe(false);
+      seen.add(key);
+      expect(walkable(noctis, s.tile[0], s.tile[1]), `station ${s.id} is not on floor`).toBe(true);
+      // the desk is what makes the tile unreachable: if this stops being true,
+      // the visitor can walk through the furniture and the agent walks through it
+      expect(canStand(grid, s.tile[0], s.tile[1]), `station ${s.id} desk does not block its tile`).toBe(
+        false,
+      );
+    }
+  });
+
+  it("leaves a standable tile in front of every desk, and does not share it", () => {
+    const seen = new Set<string>();
+    for (const s of noctisStations) {
+      const key = `${s.approach[0]},${s.approach[1]}`;
+      expect(seen.has(key), `two stations share the approach tile ${key}`).toBe(false);
+      seen.add(key);
+      expect(
+        canStand(grid, s.approach[0], s.approach[1]),
+        `station ${s.id}'s approach tile ${key} is not standable`,
+      ).toBe(true);
+    }
+  });
+
+  it("anchors one interaction to each desk's own approach tile", () => {
+    for (const s of noctisStations) {
+      const item = noctis.interactables.find((i) => i.id === `nx-agent-${s.id}`);
+      expect(item, `no interaction point for station ${s.id}`).toBeDefined();
+      expect(item!.pos).toEqual(s.approach);
+    }
   });
 });

@@ -98,5 +98,40 @@ export function PanelHost() {
     );
   }
 
-  return null; // demo panels: Phase 3
+  if (panel.kind === "contact") {
+    const emailHref =
+      `mailto:${site.owner.email}?subject=Portfolio%20contact&body=Hi%20AJ%2C%0A%0A`;
+    const channels = [
+      { label: "Email", href: emailHref },
+      { label: "GitHub", href: site.owner.github },
+      { label: "LinkedIn", href: site.owner.linkedin },
+      { label: "X", href: site.owner.x },
+      { label: "Resume", href: site.owner.resumeUrl },
+    ];
+    return (
+      <ProjectPanel title="Comms" onClose={closePanel}>
+        <p className="mt-4 text-facility-muted">
+          No forms, no cookies, no analytics. The shortest path between you and AJ.
+        </p>
+        <div className="mt-6 grid gap-3 sm:grid-cols-2">
+          {channels.map((channel) => {
+            const sameTab = channel.href.startsWith("mailto:") || channel.label === "Resume";
+            return (
+              <a
+                key={channel.label}
+                href={channel.href}
+                target={sameTab ? undefined : "_blank"}
+                rel={sameTab ? undefined : "noopener noreferrer"}
+                className="rounded-md border border-facility-border px-4 py-3 font-mono text-sm hover:border-accent hover:text-accent"
+              >
+                {channel.label}
+              </a>
+            );
+          })}
+        </div>
+      </ProjectPanel>
+    );
+  }
+
+  return null;
 }

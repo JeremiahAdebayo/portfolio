@@ -11,7 +11,7 @@ import { playerPos, useWorldStore } from "./store";
 import { rooms } from "./rooms";
 import { goThroughDoor, runAction } from "./actions";
 
-const SPEED = 4.5; // tiles per second
+const SPEED = 3.6; // tiles per second; deliberately calm for keyboard users
 const FACING_ANGLE: Record<string, number> = {
   n: Math.PI,
   s: 0,
@@ -56,7 +56,8 @@ export function PlayerController() {
   useFrame((_, dtRaw) => {
     const dt = Math.min(dtRaw, 0.05); // clamp tab-switch spikes
     const blocked = paused || panelOpen;
-    const dir = blocked ? { x: 0, z: 0 } : getMoveDir(keys.current);
+    const moveYaw = room.id === "hub" ? Math.PI : rotation.current;
+    const dir = blocked ? { x: 0, z: 0 } : getMoveDir(keys.current, moveYaw);
     movingRef.current = dir.x !== 0 || dir.z !== 0;
 
     if (movingRef.current) {
@@ -67,7 +68,7 @@ export function PlayerController() {
       rotation.current = dampAngle(
         rotation.current,
         Math.atan2(dir.x, dir.z),
-        12,
+        3.2,
         dt,
       );
     }

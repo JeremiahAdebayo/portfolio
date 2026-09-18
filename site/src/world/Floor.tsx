@@ -6,8 +6,8 @@ import type { RoomDef } from "./types";
 
 export function Floor({ room }: { room: RoomDef }) {
   const texture = useMemo(
-    () => makeFloorTexture(room.palette.floor, room.palette.wall),
-    [room.palette.floor, room.palette.wall],
+    () => makeFloorTexture(room.palette.floor, room.palette.wall, room.palette.floorPattern),
+    [room.palette.floor, room.palette.wall, room.palette.floorPattern],
   );
   useEffect(() => () => texture.dispose(), [texture]);
 

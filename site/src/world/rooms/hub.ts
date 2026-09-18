@@ -5,10 +5,11 @@ export const hub: RoomDef = {
   name: "CORE MAIN HUB",
   subtitle: "Welcome to the facility",
   palette: {
-    floor: "#2a3242",
-    wall: "#3b465c",
-    accent: "#4fd1c5",
-    trim: "#8b94a7",
+    floor: "#16243a",
+    wall: "#49627e",
+    accent: "#00a6a6",
+    trim: "#f1c75b",
+    floorPattern: "grid",
   },
   // Doorways are three tiles wide. One tile read as too small to walk through,
   // and three is the width that lands centred on the room (the hub's midline is
@@ -67,7 +68,7 @@ export const hub: RoomDef = {
       type: "sign",
       pos: [9, 2.4, 14.55],
       size: [3.2, 0.8, 0.12],
-      text: "ABOUT",
+      text: "ABOUT / COMMS",
       face: "n",
     },
     // corner pillars (blocked)
@@ -97,18 +98,6 @@ export const hub: RoomDef = {
       prompt: "ACCESS TERMINAL",
       action: { type: "panel", panel: { kind: "about" } },
     },
-    {
-      id: "door-w",
-      pos: [1, 7],
-      radius: 1.6,
-      prompt: "RESEARCH — UNDER CONSTRUCTION",
-    },
-    {
-      id: "door-s",
-      pos: [9, 13],
-      radius: 1.6,
-      prompt: "ABOUT — UNDER CONSTRUCTION",
-    },
   ],
   doors: {
     // Every tile of an opening is a door: whichever one you step on, you leave.
@@ -118,5 +107,11 @@ export const hub: RoomDef = {
     "18,6": { targetRoom: "noctis", spawn: { x: 1, z: 6 }, facing: "e" },
     "18,7": { targetRoom: "noctis", spawn: { x: 1, z: 6 }, facing: "e" },
     "18,8": { targetRoom: "noctis", spawn: { x: 1, z: 6 }, facing: "e" },
+    "0,6": { targetRoom: "research", spawn: { x: 13, z: 5 }, facing: "w" },
+    "0,7": { targetRoom: "research", spawn: { x: 13, z: 5 }, facing: "w" },
+    "0,8": { targetRoom: "research", spawn: { x: 13, z: 5 }, facing: "w" },
+    "8,14": { targetRoom: "about", spawn: { x: 7, z: 1 }, facing: "s" },
+    "9,14": { targetRoom: "about", spawn: { x: 7, z: 1 }, facing: "s" },
+    "10,14": { targetRoom: "about", spawn: { x: 7, z: 1 }, facing: "s" },
   },
 };

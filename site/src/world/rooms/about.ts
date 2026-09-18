@@ -1,0 +1,50 @@
+import type { RoomDef } from "../types";
+import { site } from "@/content/site";
+
+export const about: RoomDef = {
+  id: "about",
+  name: "WORKSTATION",
+  subtitle: "Who builds the facility",
+  palette: { floor: "#2d1d2f", wall: "#744b78", accent: "#d98ad8", trim: "#ffe0f5", floorPattern: "solid" },
+  map: [
+    "#######D#######",
+    "#.............#",
+    "#.............#",
+    "#.............#",
+    "#.............#",
+    "#.............#",
+    "#.............#",
+    "#.............#",
+    "#.............#",
+    "#.............#",
+    "#.............#",
+    "#.............#",
+    "###############",
+  ],
+  spawn: { x: 7, z: 1, facing: "s" },
+  props: [
+    { type: "box", pos: [7, 0.45, 4], size: [2.4, 0.9, 1.4], color: "#443f4a" },
+    { type: "screen", pos: [7, 1.35, 3.55], size: [1.5, 0.9, 0.1], color: "#cbd5e1", face: "n" },
+    { type: "box", pos: [13.6, 0.55, 5], size: [1, 1.1, 1.4], color: "#443f4a" },
+    { type: "screen", pos: [13.05, 1.5, 5], size: [0.1, 0.9, 1.1], color: "#7f9cf5", face: "w" },
+    { type: "box", pos: [1.5, 1.6, 6], size: [0.12, 2.2, 4.6], color: "#443f4a" },
+    { type: "sign", pos: [1.62, 2.9, 6], size: [2.8, 0.5, 0.12], text: "TIMELINE", face: "e" },
+    { type: "crate", pos: [11, 0.5, 9], size: [1, 1, 1], color: "#38414e" },
+    { type: "crate", pos: [12.4, 0.3, 9.4], size: [0.6, 0.6, 0.6], color: "#9aa2b1" },
+    { type: "sign", pos: [7, 2.6, 0.5], size: [3.2, 0.6, 0.12], text: "AJ / WORKSTATION", face: "s" },
+    { type: "sign", pos: [0.45, 2.4, 8], size: [2.6, 0.6, 0.12], text: "← CORE HUB", face: "e" },
+  ],
+  blocked: [
+    { x: 7, z: 3, w: 1, d: 2 },
+    { x: 13, z: 5, w: 1, d: 1 },
+    { x: 11, z: 9, w: 1, d: 1 },
+    { x: 12, z: 9, w: 1, d: 1 },
+  ],
+  interactables: [
+    { id: "ab-desk", pos: [7, 5], radius: 1.6, prompt: "WHO IS AJ", action: { type: "panel", panel: { kind: "about" } } },
+    { id: "ab-timeline", pos: [2, 6], radius: 1.6, prompt: "READ THE TIMELINE", action: { type: "panel", panel: { kind: "about" } } },
+    { id: "ab-comms", pos: [12, 5], radius: 1.6, prompt: "OPEN COMMS CHANNEL", action: { type: "panel", panel: { kind: "contact" } } },
+    { id: "ab-resume", pos: [11, 10], radius: 1.5, prompt: "TAKE THE RESUME", action: { type: "link", href: site.owner.resumeUrl } },
+  ],
+  doors: { "7,0": { targetRoom: "hub", spawn: { x: 9, z: 13 }, facing: "n" } },
+};

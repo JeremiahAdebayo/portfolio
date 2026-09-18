@@ -16,6 +16,16 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+## GitHub Pages
+
+The site is configured as a static export. The GitHub Actions workflow in
+`.github/workflows/deploy-pages.yml` builds and deploys `site/out` to GitHub
+Pages. Set the repository's Pages source to **GitHub Actions** after pushing.
+
+The workflow derives the project base path from the repository name, so a
+project site such as `https://user.github.io/portfolio/` keeps its routes and
+assets under `/portfolio`.
+
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.

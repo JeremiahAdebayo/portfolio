@@ -16,7 +16,7 @@ const KEY_DIRS: Record<string, Dir> = {
   ArrowRight: { x: 1, z: 0 },
 };
 
-export function getMoveDir(keys: Set<string>): Dir {
+export function getMoveDir(keys: Set<string>, yaw?: number): Dir {
   let x = 0;
   let z = 0;
   for (const key of keys) {
@@ -27,7 +27,15 @@ export function getMoveDir(keys: Set<string>): Dir {
     }
   }
   const len = Math.hypot(x, z);
-  return len > 0 ? { x: x / len, z: z / len } : { x: 0, z: 0 };
+  if (len === 0) return { x: 0, z: 0 };
+  const localX = x / len;
+  const localZ = z / len;
+  if (yaw === undefined) return { x: localX, z: localZ };
+  // Camera yaw uses 0 = south and PI = north; keep controls screen-relative.
+  return {
+    x: localX * -Math.cos(yaw) - localZ * Math.sin(yaw),
+    z: localX * Math.sin(yaw) - localZ * Math.cos(yaw),
+  };
 }
 
 export function useKeyboard(handlers: {

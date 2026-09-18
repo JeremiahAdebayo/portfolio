@@ -15,6 +15,15 @@ describe("getMoveDir", () => {
     expect(d.z).toBeCloseTo(-Math.SQRT1_2);
   });
 
+  it("keeps movement relative to the turned camera", () => {
+    const forwardEast = getMoveDir(new Set(["KeyW"]), Math.PI / 2);
+    const rightEast = getMoveDir(new Set(["KeyD"]), Math.PI / 2);
+    expect(forwardEast.x).toBeCloseTo(1);
+    expect(forwardEast.z).toBeCloseTo(0);
+    expect(rightEast.x).toBeCloseTo(0);
+    expect(rightEast.z).toBeCloseTo(1);
+  });
+
   it("returns zero for no movement keys", () => {
     expect(getMoveDir(new Set(["KeyE", "ShiftLeft"]))).toEqual({ x: 0, z: 0 });
   });

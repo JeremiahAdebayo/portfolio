@@ -6,6 +6,7 @@ import { Props } from "./Props";
 import { PlayerController } from "./PlayerController";
 import { InteractionSystem } from "./InteractionSystem";
 import { BeltDirector } from "./nightfall/BeltDirector";
+import { PlayDirector } from "./noctis/PlayDirector";
 import type { RoomDef } from "./types";
 
 export function Scene({ room }: { room: RoomDef }) {
@@ -29,6 +30,7 @@ export function Scene({ room }: { room: RoomDef }) {
       <Walls room={room} />
       <Props room={room} />
       {room.id === "nightfall" && <BeltDirector room={room} />}
+      {room.id === "noctis" && <PlayDirector room={room} />}
       <PlayerController />
       <InteractionSystem room={room} />
     </>

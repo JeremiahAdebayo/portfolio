@@ -4,8 +4,7 @@ import type { SiteContent } from "./types";
  * Facts AJ owns. `EDIT-ME` is the only placeholder allowed in this repo and
  * `npm run check:content` (Task 6.5) fails the launch while any remains.
  * The research summaries below are descriptions of the two shipped projects;
- * the 3D Vision station stays EDIT-ME because nothing in either repo supports
- * a claim about it.
+ * The research stations below only describe work AJ has actually done.
  */
 export const site: SiteContent = {
   owner: {
@@ -17,7 +16,7 @@ export const site: SiteContent = {
     github: "https://github.com/JeremiahAdebayo",
     linkedin: "https://linkedin.com/in/jadebayo24",
     x: "https://x.com/AJololade",
-    resumeUrl: "/resume.pdf",
+    resumeUrl: `${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/resume.pdf?v=20260918`,
   },
   research: [
     {
@@ -46,11 +45,6 @@ export const site: SiteContent = {
       links: [
         { label: "Noctis", href: "https://github.com/JeremiahAdebayo/Noctis" },
       ],
-    },
-    {
-      title: "3D Vision",
-      summary: "EDIT-ME: current focus, and what has actually been built here.",
-      links: [],
     },
   ],
   /**
