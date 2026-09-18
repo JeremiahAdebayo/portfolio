@@ -1,5 +1,8 @@
 import type { Project } from "./types";
 
+const assetPath = (path: string) =>
+  `${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}${path}`;
+
 /**
  * Every fact here is transcribed from the repository it describes, checked
  * 2026-09-15: Nightfall's README (results, quantization findings, serving and
@@ -63,7 +66,7 @@ export const projects: Project[] = [
           id: "bottle",
           category: "bottle",
           label: "BOTTLE",
-          image: "/samples/bottle.png",
+          image: assetPath("/samples/bottle.png"),
           rows: [
             { label: "Image AUROC", value: "0.997" },
             { label: "PRO", value: "0.701" },
@@ -74,7 +77,7 @@ export const projects: Project[] = [
           id: "cable",
           category: "cable",
           label: "CABLE",
-          image: "/samples/cable.png",
+          image: assetPath("/samples/cable.png"),
           rows: [
             { label: "Image AUROC", value: "0.927" },
             { label: "PRO", value: "0.497" },
@@ -91,7 +94,7 @@ export const projects: Project[] = [
           id: "wood",
           category: "wood",
           label: "WOOD",
-          image: "/samples/wood.png",
+          image: assetPath("/samples/wood.png"),
           rows: [
             { label: "Image AUROC", value: "0.954" },
             { label: "PRO", value: "0.779" },
