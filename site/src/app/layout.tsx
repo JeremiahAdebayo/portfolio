@@ -1,3 +1,4 @@
+import Script from "next/script";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
@@ -36,6 +37,11 @@ export default function RootLayout({
     >
       <body className="min-h-screen bg-facility-bg font-sans text-facility-text antialiased">
         {children}
+        <Script
+  src="https://static.cloudflareinsights.com/beacon.min.js"
+  strategy="afterInteractive"
+  data-cf-beacon='{"token":"175ab60419af42ed96999bd5dc5ad190"}'
+/>
       </body>
     </html>
   );
